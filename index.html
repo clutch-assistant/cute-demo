@@ -644,9 +644,9 @@
     </div>
 
     <script>
-        // State
-        let petCount = 0;
-        let clickCounter = 0;
+        // State - Load from localStorage
+        let petCount = parseInt(localStorage.getItem('blobby_petCount')) || 0;
+        let clickCounter = parseInt(localStorage.getItem('blobby_clickCounter')) || 0;
         const messages = [
             "You're amazing! 🌟",
             "Blobby loves you! 🩷",
@@ -716,6 +716,7 @@
         document.getElementById('blobby').addEventListener('click', function() {
             petCount++;
             document.getElementById('petCount').textContent = petCount;
+            localStorage.setItem('blobby_petCount', petCount);
             
             // Blobby reaction
             this.style.transform = 'translate(-50%, -50%) scale(1.2)';
@@ -733,6 +734,7 @@
         function setMood(mood, btn) {
             document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
+            localStorage.setItem('blobby_mood', mood);
             
             const moodMessages = {
                 'amazing': "🤩 Your energy is infectious! Blobby feeds off it!",
@@ -767,6 +769,7 @@
             clickCounter += delta;
             if (clickCounter < 0) clickCounter = 0;
             document.getElementById('clickCounter').textContent = clickCounter;
+            localStorage.setItem('blobby_clickCounter', clickCounter);
             
             if (delta > 0) {
                 createFloatingEmojis(['⭐', '✨', '💫']);
@@ -805,6 +808,21 @@
 
         // Initialize
         createStars();
+        
+        // Restore saved state
+        document.getElementById('petCount').textContent = petCount;
+        document.getElementById('clickCounter').textContent = clickCounter;
+        
+        // Restore saved mood
+        const savedMood = localStorage.getItem('blobby_mood');
+        if (savedMood) {
+            const moodButtons = document.querySelectorAll('.mood-btn');
+            const moodOrder = ['amazing', 'happy', 'chill', 'tired', 'sad'];
+            const moodIndex = moodOrder.indexOf(savedMood);
+            if (moodIndex >= 0) {
+                moodButtons[moodIndex].classList.add('selected');
+            }
+        }
 
         // Periodic encouragement
         setInterval(() => {
