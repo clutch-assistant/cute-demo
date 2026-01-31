@@ -1103,8 +1103,15 @@
             let score = 0;
             let moves = 30;
             let selectedTile = null;
+            let touchStartTile = null;
             
-            gameArea.innerHTML = '<div id="match3Grid" style="display: grid; grid-template-columns: repeat(8, 50px); gap: 5px; justify-content: center; padding: 20px;"></div>';
+            // Responsive tile size
+            const isMobile = window.innerWidth < 600;
+            const tileSize = isMobile ? 35 : 50;
+            const fontSize = isMobile ? '1.5rem' : '2rem';
+            const gap = isMobile ? '3px' : '5px';
+            
+            gameArea.innerHTML = `<div id="match3Grid" style="display: grid; grid-template-columns: repeat(8, ${tileSize}px); gap: ${gap}; justify-content: center; padding: ${isMobile ? '10px' : '20px'}; max-width: 100%; overflow-x: auto;"></div>`;
             const gridElement = document.getElementById('match3Grid');
             
             // Initialize grid
@@ -1120,15 +1127,62 @@
                         
                         const tile = document.createElement('div');
                         tile.textContent = blob;
-                        tile.style.cssText = 'width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 2rem; background: #fff; border: 3px outset #808080; cursor: pointer; transition: all 0.2s;';
+                        tile.style.cssText = `width: ${tileSize}px; height: ${tileSize}px; display: flex; align-items: center; justify-content: center; font-size: ${fontSize}; background: #fff; border: 3px outset #808080; cursor: pointer; transition: all 0.2s; user-select: none;`;
                         tile.dataset.x = x;
                         tile.dataset.y = y;
                         
-                        // Touch and click handlers
+                        // Click handler
                         tile.addEventListener('click', () => handleTileClick(x, y, tile));
+                        
+                        // Touch/swipe handlers
                         tile.addEventListener('touchstart', (e) => {
                             e.preventDefault();
-                            handleTileClick(x, y, tile);
+                            touchStartTile = {x, y, tile, touchX: e.touches[0].clientX, touchY: e.touches[0].clientY};
+                            tile.style.background = '#ffeb3b';
+                            tile.style.transform = 'scale(1.1)';
+                        });
+                        
+                        tile.addEventListener('touchmove', (e) => {
+                            e.preventDefault();
+                            if (!touchStartTile) return;
+                            
+                            const deltaX = e.touches[0].clientX - touchStartTile.touchX;
+                            const deltaY = e.touches[0].clientY - touchStartTile.touchY;
+                            const threshold = tileSize / 2;
+                            
+                            // Determine swipe direction
+                            if (Math.abs(deltaX) > threshold || Math.abs(deltaY) > threshold) {
+                                let targetX = touchStartTile.x;
+                                let targetY = touchStartTile.y;
+                                
+                                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                                    // Horizontal swipe
+                                    targetX += deltaX > 0 ? 1 : -1;
+                                } else {
+                                    // Vertical swipe
+                                    targetY += deltaY > 0 ? 1 : -1;
+                                }
+                                
+                                // Check bounds
+                                if (targetX >= 0 && targetX < gridSize && targetY >= 0 && targetY < gridSize) {
+                                    const targetTile = gridElement.children[targetY * gridSize + targetX];
+                                    handleSwap(touchStartTile.x, touchStartTile.y, targetX, targetY);
+                                }
+                                
+                                // Reset
+                                touchStartTile.tile.style.background = '#fff';
+                                touchStartTile.tile.style.transform = 'scale(1)';
+                                touchStartTile = null;
+                            }
+                        });
+                        
+                        tile.addEventListener('touchend', (e) => {
+                            e.preventDefault();
+                            if (touchStartTile) {
+                                touchStartTile.tile.style.background = '#fff';
+                                touchStartTile.tile.style.transform = 'scale(1)';
+                                touchStartTile = null;
+                            }
                         });
                         
                         gridElement.appendChild(tile);
@@ -1142,6 +1196,43 @@
                 }
             }
             
+            function handleSwap(x1, y1, x2, y2) {
+                if (moves <= 0) return;
+                
+                // Check if adjacent
+                const dx = Math.abs(x1 - x2);
+                const dy = Math.abs(y1 - y2);
+                
+                if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
+                    // Swap tiles
+                    swapTiles(x1, y1, x2, y2);
+                    moves--;
+                    scoreDisplay.textContent = `SCORE: ${score} | MOVES: ${moves}`;
+                    
+                    setTimeout(() => {
+                        const matches = findMatches();
+                        if (matches.length > 0) {
+                            processMatches();
+                        } else {
+                            // Swap back if no match
+                            swapTiles(x1, y1, x2, y2);
+                        }
+                        
+                        if (moves <= 0) {
+                            setTimeout(() => {
+                                const isNewHigh = saveHighScore('match3', score);
+                                const highScore = getHighScore('match3');
+                                const msg = isNewHigh ? 
+                                    `🏆 NEW HIGH SCORE! ${score} points! 🏆` :
+                                    `⏰ GAME OVER! Score: ${score} (High: ${highScore})`;
+                                alert(msg);
+                                closeGame();
+                            }, 500);
+                        }
+                    }, 300);
+                }
+            }
+            
             function handleTileClick(x, y, tile) {
                 if (moves <= 0) return;
                 
@@ -1150,38 +1241,7 @@
                     tile.style.background = '#ffeb3b';
                     tile.style.transform = 'scale(1.1)';
                 } else {
-                    // Check if adjacent
-                    const dx = Math.abs(selectedTile.x - x);
-                    const dy = Math.abs(selectedTile.y - y);
-                    
-                    if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
-                        // Swap tiles
-                        swapTiles(selectedTile.x, selectedTile.y, x, y);
-                        moves--;
-                        scoreDisplay.textContent = `SCORE: ${score} | MOVES: ${moves}`;
-                        
-                        setTimeout(() => {
-                            const matches = findMatches();
-                            if (matches.length > 0) {
-                                processMatches();
-                            } else {
-                                // Swap back if no match
-                                swapTiles(selectedTile.x, selectedTile.y, x, y);
-                            }
-                            
-                            if (moves <= 0) {
-                                setTimeout(() => {
-                                    const isNewHigh = saveHighScore('match3', score);
-                                    const highScore = getHighScore('match3');
-                                    const msg = isNewHigh ? 
-                                        `🏆 NEW HIGH SCORE! ${score} points! 🏆` :
-                                        `⏰ GAME OVER! Score: ${score} (High: ${highScore})`;
-                                    alert(msg);
-                                    closeGame();
-                                }, 500);
-                            }
-                        }, 300);
-                    }
+                    handleSwap(selectedTile.x, selectedTile.y, x, y);
                     
                     // Deselect
                     selectedTile.tile.style.background = '#fff';
@@ -1302,7 +1362,7 @@
             }
             
             createGrid();
-            scoreDisplay.textContent = 'SCORE: 0 | MOVES: 30 | Swap adjacent blobs!';
+            scoreDisplay.textContent = isMobile ? 'SCORE: 0 | MOVES: 30' : 'SCORE: 0 | MOVES: 30 | Swap or swipe to match 3!';
         }
 
         // Counter animation
