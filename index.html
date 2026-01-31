@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✨ Welcome to Blobby's World! ✨</title>
+    <title>🎮 BLOBBY'S GAME ZONE 🎮 - The ULTIMATE Gaming Portal!</title>
     <style>
         * {
             margin: 0;
@@ -12,788 +12,805 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ffecd2 100%);
-            overflow-x: hidden;
-            cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><text y="18" font-size="18">🩷</text></svg>'), auto;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: #ff00ff url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="%2300ffff" width="50" height="50"/><rect fill="%23ffff00" x="50" width="50" height="50"/><rect fill="%23ffff00" y="50" width="50" height="50"/><rect fill="%2300ffff" x="50" y="50" width="50" height="50"/></svg>');
+            color: #000;
+            cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><text y="18" font-size="18">🎮</text></svg>'), auto;
         }
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
+        .header {
+            background: linear-gradient(90deg, red, orange, yellow, lime, cyan, blue, magenta, red);
+            background-size: 200% 100%;
+            animation: rainbow 3s linear infinite;
             padding: 20px;
             text-align: center;
+            border: 5px solid #000;
+            box-shadow: 0 0 20px rgba(255,255,0,0.8);
+        }
+
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
         }
 
         h1 {
             font-size: 3rem;
-            color: #e84393;
-            text-shadow: 3px 3px 0 #fd79a8, 6px 6px 0 rgba(0,0,0,0.1);
-            margin-bottom: 10px;
-            animation: bounce 2s ease-in-out infinite;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-
-        .subtitle {
-            font-size: 1.3rem;
-            color: #6c5ce7;
-            margin-bottom: 30px;
-        }
-
-        /* Blobby the Blob */
-        .blobby-container {
-            position: relative;
-            width: 200px;
-            height: 200px;
-            margin: 30px auto;
-        }
-
-        .blobby {
-            width: 180px;
-            height: 180px;
-            background: linear-gradient(145deg, #fd79a8, #e84393);
-            border-radius: 50% 50% 45% 55% / 55% 55% 45% 45%;
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            animation: wobble 3s ease-in-out infinite, float 4s ease-in-out infinite;
-            box-shadow: 
-                inset -20px -20px 40px rgba(0,0,0,0.1),
-                inset 20px 20px 40px rgba(255,255,255,0.3),
-                0 20px 40px rgba(232, 67, 147, 0.4);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .blobby:hover {
-            transform: translate(-50%, -50%) scale(1.1) !important;
-        }
-
-        @keyframes wobble {
-            0%, 100% { border-radius: 50% 50% 45% 55% / 55% 55% 45% 45%; }
-            25% { border-radius: 55% 45% 50% 50% / 50% 50% 55% 45%; }
-            50% { border-radius: 45% 55% 55% 45% / 45% 45% 50% 50%; }
-            75% { border-radius: 50% 50% 45% 55% / 55% 55% 45% 45%; }
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
-            25% { transform: translate(-50%, -55%) rotate(3deg); }
-            75% { transform: translate(-50%, -45%) rotate(-3deg); }
-        }
-
-        .eyes {
-            position: absolute;
-            top: 35%;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 30px;
-        }
-
-        .eye {
-            width: 35px;
-            height: 45px;
-            background: white;
-            border-radius: 50%;
-            position: relative;
-            animation: blink 4s infinite;
-        }
-
-        .eye::after {
-            content: '';
-            width: 18px;
-            height: 18px;
-            background: #2d3436;
-            border-radius: 50%;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            animation: lookAround 6s infinite;
+            color: #fff;
+            text-shadow: 4px 4px 0 #000, 8px 8px 0 #ff00ff;
+            animation: blink 0.5s infinite alternate;
         }
 
         @keyframes blink {
-            0%, 45%, 55%, 100% { transform: scaleY(1); }
-            50% { transform: scaleY(0.1); }
+            from { opacity: 1; }
+            to { opacity: 0.7; }
         }
 
-        @keyframes lookAround {
-            0%, 100% { transform: translate(-50%, -50%); }
-            20% { transform: translate(-80%, -40%); }
-            40% { transform: translate(-20%, -60%); }
-            60% { transform: translate(-80%, -60%); }
-            80% { transform: translate(-20%, -40%); }
-        }
-
-        .mouth {
-            position: absolute;
-            top: 65%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 40px;
-            height: 20px;
-            border-bottom: 5px solid #2d3436;
-            border-radius: 0 0 50% 50%;
-            animation: smile 3s ease-in-out infinite;
-        }
-
-        @keyframes smile {
-            0%, 100% { height: 20px; }
-            50% { height: 25px; }
-        }
-
-        .cheeks {
-            position: absolute;
-            top: 55%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 120px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .cheek {
-            width: 25px;
-            height: 15px;
-            background: rgba(255, 150, 180, 0.6);
-            border-radius: 50%;
-        }
-
-        /* Interactive Buttons */
-        .button-container {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin: 30px 0;
-        }
-
-        .cute-btn {
-            padding: 15px 35px;
-            font-size: 1.1rem;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .marquee {
+            background: #ff0;
+            color: #f00;
+            padding: 10px;
+            border: 3px dashed #000;
             font-weight: bold;
-            position: relative;
-            overflow: hidden;
+            font-size: 1.2rem;
         }
 
-        .cute-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255,255,255,0.3);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: all 0.5s ease;
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            background: #fff;
+            border: 5px solid #000;
+            padding: 20px;
         }
 
-        .cute-btn:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-
-        .btn-pink {
-            background: linear-gradient(135deg, #fd79a8, #e84393);
-            color: white;
-            box-shadow: 0 8px 25px rgba(232, 67, 147, 0.4);
-        }
-
-        .btn-pink:hover {
-            transform: translateY(-5px) scale(1.05);
-        }
-
-        .btn-purple {
-            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
-            color: white;
-            box-shadow: 0 8px 25px rgba(108, 92, 231, 0.4);
-        }
-
-        .btn-purple:hover {
-            transform: translateY(-5px) scale(1.05);
-        }
-
-        .btn-yellow {
-            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
-            color: #6c5ce7;
-            box-shadow: 0 8px 25px rgba(253, 203, 110, 0.4);
-        }
-
-        .btn-yellow:hover {
-            transform: translateY(-5px) scale(1.05);
-        }
-
-        /* Message Box */
-        .message-box {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            margin: 30px auto;
-            max-width: 500px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            min-height: 100px;
+        .stats-bar {
+            background: #c0c0c0;
+            border: 3px inset #808080;
+            padding: 10px;
+            margin-bottom: 20px;
             display: flex;
-            align-items: center;
-            justify-content: center;
+            justify-content: space-around;
+            font-size: 0.9rem;
         }
 
-        .message {
-            font-size: 1.4rem;
-            color: #6c5ce7;
-            animation: fadeIn 0.5s ease;
+        .stat {
+            background: #000;
+            color: #0f0;
+            padding: 5px 15px;
+            border: 2px outset #808080;
+            font-family: 'Courier New', monospace;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
         }
 
-        /* Floating Emojis */
-        .floating-emoji {
-            position: fixed;
-            font-size: 2rem;
-            pointer-events: none;
-            animation: floatUp 3s ease-out forwards;
-            z-index: 1000;
+        .game-card {
+            background: linear-gradient(45deg, #ffeaa7, #fd79a8);
+            border: 5px outset #808080;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
         }
 
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0) rotate(0deg); }
-            100% { opacity: 0; transform: translateY(-200px) rotate(360deg); }
+        .game-card:hover {
+            transform: scale(1.05) rotate(2deg);
+            box-shadow: 0 0 30px rgba(255,0,255,0.8);
         }
 
-        /* Rainbow Trail */
-        .rainbow-trail {
-            position: fixed;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            pointer-events: none;
-            animation: trailFade 1s ease-out forwards;
+        .game-card h3 {
+            color: #d63031;
+            text-shadow: 2px 2px #fff;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
         }
 
-        @keyframes trailFade {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(0); opacity: 0; }
+        .play-btn {
+            background: #00ff00;
+            color: #000;
+            border: 4px outset #808080;
+            padding: 10px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Comic Sans MS', cursive;
         }
 
-        /* Stars Background */
-        .stars {
+        .play-btn:active {
+            border-style: inset;
+        }
+
+        /* Game Modal */
+        .modal {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
-            z-index: -1;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            overflow-y: auto;
         }
 
-        .star {
+        .modal-content {
+            background: #fff;
+            margin: 50px auto;
+            max-width: 800px;
+            border: 10px ridge #808080;
+            padding: 20px;
+            position: relative;
+        }
+
+        .close-btn {
             position: absolute;
-            font-size: 1.5rem;
-            animation: twinkle 2s infinite;
-        }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.8); }
-        }
-
-        /* Interactive Cards */
-        .cards-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin: 40px 0;
-        }
-
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            transition: all 0.4s ease;
-            cursor: pointer;
-        }
-
-        .card:hover {
-            transform: translateY(-15px) rotate(2deg);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-        }
-
-        .card-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-        }
-
-        .card h3 {
-            color: #6c5ce7;
-            margin-bottom: 10px;
-        }
-
-        .card p {
-            color: #636e72;
-            font-size: 0.95rem;
-        }
-
-        /* Confetti */
-        .confetti {
-            position: fixed;
-            width: 10px;
-            height: 10px;
-            pointer-events: none;
-            animation: confettiFall linear forwards;
-        }
-
-        @keyframes confettiFall {
-            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-        }
-
-        /* Rainbow Wave */
-        .rainbow-wave {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 200%;
-            height: 100px;
-            display: flex;
-            animation: waveMove 10s linear infinite;
-        }
-
-        .wave-stripe {
-            width: 10%;
-            height: 100%;
-        }
-
-        @keyframes waveMove {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-
-        /* Mood Selector */
-        .mood-container {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            margin: 30px auto;
-            max-width: 400px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-        }
-
-        .mood-container h3 {
-            color: #6c5ce7;
-            margin-bottom: 20px;
-        }
-
-        .mood-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .mood-btn {
+            top: 10px;
+            right: 20px;
             font-size: 2rem;
-            background: none;
-            border: 3px solid transparent;
-            border-radius: 50%;
-            padding: 10px;
+            background: #f00;
+            color: #fff;
+            border: 3px outset #800;
+            padding: 5px 15px;
             cursor: pointer;
-            transition: all 0.3s ease;
         }
 
-        .mood-btn:hover {
-            transform: scale(1.2);
-            background: #f8f9fa;
+        .game-area {
+            min-height: 400px;
+            padding: 20px;
+            background: #000;
+            border: 5px inset #808080;
+            position: relative;
         }
 
-        .mood-btn.selected {
-            border-color: #e84393;
-            background: #ffeaa7;
+        /* Memory Game */
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            gap: 10px;
+            justify-content: center;
         }
 
-        /* Counter Display */
-        .counter-container {
+        .memory-card {
+            width: 100px;
+            height: 100px;
+            background: #6c5ce7;
+            border: 3px outset #808080;
+            cursor: pointer;
+            font-size: 3rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 20px;
+            transition: transform 0.3s;
+        }
+
+        .memory-card.flipped {
+            background: #ffeaa7;
+            border-style: inset;
+        }
+
+        .memory-card.matched {
+            background: #00ff00;
+            animation: pulse 0.5s;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* Catcher Game */
+        #catcherCanvas {
+            background: linear-gradient(180deg, #87ceeb 0%, #98fb98 100%);
+            border: 5px solid #000;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Clicker Game */
+        .blob-target {
+            position: absolute;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: transform 0.1s;
+            animation: wiggle 1s infinite;
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        .blob-target:active {
+            transform: scale(0.8);
+        }
+
+        /* Snake Game */
+        #snakeCanvas {
+            background: #000;
+            border: 5px solid #0f0;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .game-score {
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            text-align: center;
+            margin: 10px 0;
+            background: #000;
+            padding: 10px;
+            border: 3px inset #808080;
+        }
+
+        .controls {
+            text-align: center;
             margin: 20px 0;
         }
 
-        .counter-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: none;
-            font-size: 1.5rem;
+        .control-btn {
+            background: #0080ff;
+            color: #fff;
+            border: 3px outset #0040ff;
+            padding: 15px 30px;
+            margin: 5px;
+            font-size: 1.2rem;
             cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .counter-btn:hover {
-            transform: scale(1.1);
-        }
-
-        .counter-minus {
-            background: #ff7675;
-            color: white;
-        }
-
-        .counter-plus {
-            background: #00b894;
-            color: white;
-        }
-
-        .counter-display {
-            font-size: 3rem;
             font-weight: bold;
-            color: #6c5ce7;
-            min-width: 80px;
         }
 
-        /* Footer Sparkles */
+        .control-btn:active {
+            border-style: inset;
+        }
+
         .footer {
-            margin-top: 50px;
+            background: #c0c0c0;
+            border: 3px inset #808080;
             padding: 20px;
-            color: #6c5ce7;
+            margin-top: 20px;
+            text-align: center;
         }
 
-        .sparkle {
+        .visitor-counter {
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
             display: inline-block;
-            animation: sparkleAnim 1.5s infinite;
+            border: 3px inset #808080;
         }
 
-        @keyframes sparkleAnim {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.8); }
+        .blobby-mascot {
+            font-size: 5rem;
+            animation: float 3s ease-in-out infinite;
         }
 
-        /* Pet Me Zone */
-        .pet-zone {
-            margin: 30px auto;
-            max-width: 300px;
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
         }
 
-        .pet-prompt {
-            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
-            padding: 20px;
-            border-radius: 20px;
-            color: #6c5ce7;
-            font-weight: bold;
-        }
-
-        .pet-count {
-            font-size: 2rem;
-            margin-top: 10px;
+        .best-viewed {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            font-style: italic;
         }
     </style>
 </head>
 <body>
-    <!-- Stars Background -->
-    <div class="stars" id="stars"></div>
-
-    <!-- Rainbow Wave Footer -->
-    <div class="rainbow-wave">
-        <div class="wave-stripe" style="background: #ff6b81;"></div>
-        <div class="wave-stripe" style="background: #ffa502;"></div>
-        <div class="wave-stripe" style="background: #ffdd59;"></div>
-        <div class="wave-stripe" style="background: #7bed9f;"></div>
-        <div class="wave-stripe" style="background: #70a1ff;"></div>
-        <div class="wave-stripe" style="background: #5352ed;"></div>
-        <div class="wave-stripe" style="background: #ff6b81;"></div>
-        <div class="wave-stripe" style="background: #ffa502;"></div>
-        <div class="wave-stripe" style="background: #ffdd59;"></div>
-        <div class="wave-stripe" style="background: #7bed9f;"></div>
-        <div class="wave-stripe" style="background: #70a1ff;"></div>
-        <div class="wave-stripe" style="background: #5352ed;"></div>
-        <div class="wave-stripe" style="background: #ff6b81;"></div>
-        <div class="wave-stripe" style="background: #ffa502;"></div>
-        <div class="wave-stripe" style="background: #ffdd59;"></div>
-        <div class="wave-stripe" style="background: #7bed9f;"></div>
-        <div class="wave-stripe" style="background: #70a1ff;"></div>
-        <div class="wave-stripe" style="background: #5352ed;"></div>
-        <div class="wave-stripe" style="background: #ff6b81;"></div>
-        <div class="wave-stripe" style="background: #ffa502;"></div>
+    <div class="header">
+        <h1>🎮 BLOBBY'S GAME ZONE 🎮</h1>
+        <p style="color: #fff; font-size: 1.5rem; text-shadow: 2px 2px #000;">⭐ THE ULTIMATE GAMING PORTAL ⭐</p>
     </div>
 
+    <marquee class="marquee">🔥 WELCOME TO THE MOST RADICAL GAME SITE ON THE WEB! 🔥 NEW GAMES ADDED DAILY! 🔥 BOOKMARK THIS PAGE NOW! 🔥</marquee>
+
     <div class="container">
-        <!-- Title -->
-        <h1>✨ Blobby's World ✨</h1>
-        <p class="subtitle">A little corner of internet cuteness just for you! 🩷</p>
+        <div class="stats-bar">
+            <div class="stat">VISITORS: <span id="visitors">001337</span></div>
+            <div class="stat">GAMES PLAYED: <span id="gamesPlayed">0</span></div>
+            <div class="stat">HIGH SCORE: <span id="highScore">0</span></div>
+            <div class="stat">STATUS: <span id="status">READY</span></div>
+        </div>
 
-        <!-- Blobby -->
-        <div class="blobby-container">
-            <div class="blobby" id="blobby">
-                <div class="eyes">
-                    <div class="eye"></div>
-                    <div class="eye"></div>
-                </div>
-                <div class="mouth"></div>
-                <div class="cheeks">
-                    <div class="cheek"></div>
-                    <div class="cheek"></div>
-                </div>
+        <center>
+            <div class="blobby-mascot">🎮</div>
+            <h2 style="color: #e84393; text-shadow: 2px 2px #000;">CHOOSE YOUR ADVENTURE!</h2>
+            <p style="font-size: 1.2rem; margin: 10px 0;">Click any game below to start playing! 100% FREE! NO DOWNLOADS!</p>
+        </center>
+
+        <div class="game-grid">
+            <div class="game-card" onclick="openGame('memory')">
+                <h3>🧠 MEMORY MATCH</h3>
+                <p>Find all the matching Blob pairs!</p>
+                <p><b>Difficulty:</b> ⭐⭐⭐</p>
+                <button class="play-btn">PLAY NOW!</button>
+            </div>
+
+            <div class="game-card" onclick="openGame('catcher')">
+                <h3>🎯 BLOB CATCHER</h3>
+                <p>Catch the falling Blobs before they escape!</p>
+                <p><b>Difficulty:</b> ⭐⭐⭐⭐</p>
+                <button class="play-btn">PLAY NOW!</button>
+            </div>
+
+            <div class="game-card" onclick="openGame('clicker')">
+                <h3>💥 CLICK FRENZY</h3>
+                <p>Click all the Blobs in 30 seconds!</p>
+                <p><b>Difficulty:</b> ⭐⭐</p>
+                <button class="play-btn">PLAY NOW!</button>
+            </div>
+
+            <div class="game-card" onclick="openGame('snake')">
+                <h3>🐍 SNAKE BLOB</h3>
+                <p>Classic Snake with a Blobby twist!</p>
+                <p><b>Difficulty:</b> ⭐⭐⭐⭐⭐</p>
+                <button class="play-btn">PLAY NOW!</button>
+            </div>
+
+            <div class="game-card" onclick="openGame('reaction')">
+                <h3>⚡ REACTION TEST</h3>
+                <p>Test your lightning-fast reflexes!</p>
+                <p><b>Difficulty:</b> ⭐⭐</p>
+                <button class="play-btn">PLAY NOW!</button>
+            </div>
+
+            <div class="game-card" onclick="openGame('whackablob')">
+                <h3>🔨 WHACK-A-BLOB</h3>
+                <p>Whack the Blobs as they pop up!</p>
+                <p><b>Difficulty:</b> ⭐⭐⭐</p>
+                <button class="play-btn">PLAY NOW!</button>
             </div>
         </div>
 
-        <!-- Message Box -->
-        <div class="message-box">
-            <p class="message" id="message">👋 Hi there! I'm Blobby! Click around and have fun!</p>
-        </div>
-
-        <!-- Interactive Buttons -->
-        <div class="button-container">
-            <button class="cute-btn btn-pink" onclick="showLove()">💖 Show Love</button>
-            <button class="cute-btn btn-purple" onclick="makeWishes()">🌟 Make Wishes</button>
-            <button class="cute-btn btn-yellow" onclick="throwConfetti()">🎉 Celebrate!</button>
-        </div>
-
-        <!-- Pet Counter -->
-        <div class="pet-zone">
-            <div class="pet-prompt">
-                ✋ Pet Blobby!
-                <div class="pet-count">🐾 <span id="petCount">0</span> pets given</div>
-            </div>
-        </div>
-
-        <!-- Mood Selector -->
-        <div class="mood-container">
-            <h3>How are you feeling today?</h3>
-            <div class="mood-buttons">
-                <button class="mood-btn" onclick="setMood('amazing', this)">🤩</button>
-                <button class="mood-btn" onclick="setMood('happy', this)">😊</button>
-                <button class="mood-btn" onclick="setMood('chill', this)">😌</button>
-                <button class="mood-btn" onclick="setMood('tired', this)">😴</button>
-                <button class="mood-btn" onclick="setMood('sad', this)">🥺</button>
-            </div>
-        </div>
-
-        <!-- Fun Cards -->
-        <h2 style="color: #6c5ce7; margin-bottom: 20px;">🎮 Mini Games & Fun!</h2>
-        <div class="cards-container">
-            <div class="card" onclick="playCardGame('memory')">
-                <div class="card-icon">🧠</div>
-                <h3>Memory Match</h3>
-                <p>Click cards to find matching pairs!</p>
-            </div>
-            <div class="card" onclick="playCardGame('click')">
-                <div class="card-icon">👆</div>
-                <h3>Click Challenge</h3>
-                <p>See how fast you can click!</p>
-            </div>
-            <div class="card" onclick="playCardGame('magic')">
-                <div class="card-icon">🔮</div>
-                <h3>Magic 8-Ball</h3>
-                <p>Ask a question and reveal your fate!</p>
-            </div>
-        </div>
-
-        <!-- Click Counter -->
-        <div class="mood-container">
-            <h3>🎯 Click Power!</h3>
-            <div class="counter-container">
-                <button class="counter-btn counter-minus" onclick="updateCounter(-1)">−</button>
-                <div class="counter-display" id="clickCounter">0</div>
-                <button class="counter-btn counter-plus" onclick="updateCounter(1)">+</button>
-            </div>
-        </div>
-
-        <!-- Footer -->
         <div class="footer">
-            <p><span class="sparkle">✨</span> Made with 🩷 and ☕ <span class="sparkle">✨</span></p>
-            <p style="margin-top: 10px;">Thanks for visiting! You deserve all the good things! 🌈</p>
+            <p style="font-size: 1.5rem; font-weight: bold;">⭐ BLOBBY'S GAME ZONE ⭐</p>
+            <div class="visitor-counter">
+                🎮 YOU ARE VISITOR #<span id="counterDisplay">001337</span> 🎮
+            </div>
+            <div class="best-viewed">
+                <p>✨ Best viewed in Netscape Navigator 4.0 or higher ✨</p>
+                <p>⚡ Optimized for 800x600 resolution ⚡</p>
+                <p>Made with 💖 in 1999 (not really)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Modals -->
+    <div id="gameModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeGame()">✖</button>
+            <h2 id="gameTitle" style="text-align: center; color: #e84393; text-shadow: 2px 2px #000;">GAME</h2>
+            <div class="game-score" id="scoreDisplay">SCORE: 0</div>
+            <div class="game-area" id="gameArea"></div>
+            <div class="controls" id="gameControls"></div>
         </div>
     </div>
 
     <script>
-        // State
-        let petCount = 0;
-        let clickCounter = 0;
-        const messages = [
-            "You're amazing! 🌟",
-            "Blobby loves you! 🩷",
-            "Keep being awesome! ✨",
-            "You light up the world! 💫",
-            "Blobby gives you a hug! 🤗",
-            "You're doing great, friend! 🎉",
-            "Sending you virtual cookies! 🍪",
-            "Your smile is contagious! 😊",
-            "Blobby thinks you're cool! 😎",
-            "Have a wonderful day! 🌈"
-        ];
+        let gamesPlayed = 0;
+        let currentGame = null;
+        let gameInterval = null;
 
-        // Initialize stars
-        function createStars() {
-            const starsContainer = document.getElementById('stars');
-            const starEmojis = ['⭐', '✨', '💫', '🌟'];
+        // Update stats
+        function updateStats() {
+            document.getElementById('gamesPlayed').textContent = gamesPlayed;
+            document.getElementById('visitors').textContent = String(Math.floor(Math.random() * 999999) + 1).padStart(6, '0');
+        }
+
+        function openGame(gameName) {
+            gamesPlayed++;
+            updateStats();
+            currentGame = gameName;
+            document.getElementById('gameModal').style.display = 'block';
+            document.getElementById('status').textContent = 'PLAYING';
             
-            for (let i = 0; i < 30; i++) {
-                const star = document.createElement('span');
-                star.className = 'star';
-                star.textContent = starEmojis[Math.floor(Math.random() * starEmojis.length)];
-                star.style.left = Math.random() * 100 + '%';
-                star.style.top = Math.random() * 100 + '%';
-                star.style.animationDelay = Math.random() * 2 + 's';
-                starsContainer.appendChild(star);
+            switch(gameName) {
+                case 'memory':
+                    startMemoryGame();
+                    break;
+                case 'catcher':
+                    startCatcherGame();
+                    break;
+                case 'clicker':
+                    startClickerGame();
+                    break;
+                case 'snake':
+                    startSnakeGame();
+                    break;
+                case 'reaction':
+                    startReactionGame();
+                    break;
+                case 'whackablob':
+                    startWhackABlobGame();
+                    break;
             }
         }
 
-        // Show random message
-        function showLove() {
-            const msg = messages[Math.floor(Math.random() * messages.length)];
-            document.getElementById('message').textContent = msg + ' 💕';
-            createFloatingEmojis(['💖', '💕', '💗', '🩷', '✨']);
+        function closeGame() {
+            document.getElementById('gameModal').style.display = 'none';
+            document.getElementById('status').textContent = 'READY';
+            if (gameInterval) {
+                clearInterval(gameInterval);
+                gameInterval = null;
+            }
         }
 
-        // Make wishes
-        function makeWishes() {
-            document.getElementById('message').textContent = '🌟 Your wish is being granted... 🌟';
-            createFloatingEmojis(['⭐', '✨', '🌟', '💫']);
-            setTimeout(() => {
-                const wishes = ['✨ Great things are coming your way!', '💖 Someone special is thinking of you!', '🌈 Today will be amazing!'];
-                document.getElementById('message').textContent = wishes[Math.floor(Math.random() * wishes.length)];
-            }, 2000);
-        }
-
-        // Confetti celebration
-        function throwConfetti() {
-            document.getElementById('message').textContent = '🎉 WOOOHOOO! Celebrate yourself! 🎉';
-            const colors = ['#ff6b81', '#ffa502', '#ffdd59', '#7bed9f', '#70a1ff', '#5352ed'];
+        // MEMORY MATCH GAME
+        function startMemoryGame() {
+            document.getElementById('gameTitle').textContent = '🧠 MEMORY MATCH';
+            const gameArea = document.getElementById('gameArea');
+            const scoreDisplay = document.getElementById('scoreDisplay');
             
-            for (let i = 0; i < 100; i++) {
-                setTimeout(() => {
-                    const confetti = document.createElement('div');
-                    confetti.className = 'confetti';
-                    confetti.style.left = Math.random() * 100 + 'vw';
-                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
-                    document.body.appendChild(confetti);
+            const blobs = ['🎮', '🎨', '🎭', '🎪', '🎯', '🎲', '🎰', '🎸'];
+            const cards = [...blobs, ...blobs].sort(() => Math.random() - 0.5);
+            
+            let flipped = [];
+            let matched = 0;
+            let moves = 0;
+            
+            gameArea.innerHTML = '<div class="memory-grid" id="memoryGrid"></div>';
+            const grid = document.getElementById('memoryGrid');
+            
+            cards.forEach((blob, index) => {
+                const card = document.createElement('div');
+                card.className = 'memory-card';
+                card.dataset.index = index;
+                card.dataset.blob = blob;
+                card.textContent = '❓';
+                card.onclick = () => flipCard(card);
+                grid.appendChild(card);
+            });
+            
+            function flipCard(card) {
+                if (flipped.length >= 2 || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+                
+                card.classList.add('flipped');
+                card.textContent = card.dataset.blob;
+                flipped.push(card);
+                
+                if (flipped.length === 2) {
+                    moves++;
+                    scoreDisplay.textContent = `MOVES: ${moves} | MATCHED: ${matched}/8`;
                     
-                    setTimeout(() => confetti.remove(), 4000);
-                }, i * 30);
+                    if (flipped[0].dataset.blob === flipped[1].dataset.blob) {
+                        flipped.forEach(c => c.classList.add('matched'));
+                        matched++;
+                        flipped = [];
+                        
+                        if (matched === 8) {
+                            setTimeout(() => {
+                                alert(`🎉 YOU WIN! Completed in ${moves} moves!`);
+                                closeGame();
+                            }, 500);
+                        }
+                    } else {
+                        setTimeout(() => {
+                            flipped.forEach(c => {
+                                c.classList.remove('flipped');
+                                c.textContent = '❓';
+                            });
+                            flipped = [];
+                        }, 1000);
+                    }
+                }
             }
+            
+            scoreDisplay.textContent = 'MOVES: 0 | MATCHED: 0/8';
         }
 
-        // Pet Blobby
-        document.getElementById('blobby').addEventListener('click', function() {
-            petCount++;
-            document.getElementById('petCount').textContent = petCount;
+        // BLOB CATCHER GAME
+        function startCatcherGame() {
+            document.getElementById('gameTitle').textContent = '🎯 BLOB CATCHER';
+            const gameArea = document.getElementById('gameArea');
+            const scoreDisplay = document.getElementById('scoreDisplay');
             
-            // Blobby reaction
-            this.style.transform = 'translate(-50%, -50%) scale(1.2)';
-            setTimeout(() => {
-                this.style.transform = '';
-            }, 200);
+            gameArea.innerHTML = '<canvas id="catcherCanvas" width="600" height="400"></canvas>';
+            const canvas = document.getElementById('catcherCanvas');
+            const ctx = canvas.getContext('2d');
             
-            createFloatingEmojis(['💖', '🩷', '💕']);
+            let score = 0;
+            let paddleX = 250;
+            const paddleWidth = 100;
+            const paddleHeight = 20;
+            let blobs = [];
+            let gameOver = false;
             
-            const petMessages = ['*Blobby purrs happily* 🐱', '*Blobby does a happy wiggle* 💃', '*Blobby blushes* 🥰'];
-            document.getElementById('message').textContent = petMessages[Math.floor(Math.random() * petMessages.length)];
-        });
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                paddleX = e.clientX - rect.left - paddleWidth / 2;
+            });
+            
+            function spawnBlob() {
+                blobs.push({
+                    x: Math.random() * (canvas.width - 40),
+                    y: 0,
+                    speed: 2 + Math.random() * 3,
+                    emoji: ['🩷', '💖', '✨', '⭐', '🎮'][Math.floor(Math.random() * 5)]
+                });
+            }
+            
+            function gameLoop() {
+                if (gameOver) return;
+                
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw paddle
+                ctx.fillStyle = '#e84393';
+                ctx.fillRect(paddleX, canvas.height - 30, paddleWidth, paddleHeight);
+                
+                // Update and draw blobs
+                for (let i = blobs.length - 1; i >= 0; i--) {
+                    const blob = blobs[i];
+                    blob.y += blob.speed;
+                    
+                    ctx.font = '40px Arial';
+                    ctx.fillText(blob.emoji, blob.x, blob.y);
+                    
+                    // Check collision with paddle
+                    if (blob.y > canvas.height - 50 && blob.y < canvas.height - 30 &&
+                        blob.x > paddleX && blob.x < paddleX + paddleWidth) {
+                        score++;
+                        blobs.splice(i, 1);
+                        scoreDisplay.textContent = `SCORE: ${score}`;
+                    } else if (blob.y > canvas.height) {
+                        gameOver = true;
+                        alert(`💔 GAME OVER! Final Score: ${score}`);
+                        closeGame();
+                    }
+                }
+                
+                if (Math.random() < 0.02) spawnBlob();
+                
+                requestAnimationFrame(gameLoop);
+            }
+            
+            scoreDisplay.textContent = 'SCORE: 0';
+            spawnBlob();
+            gameLoop();
+        }
 
-        // Set mood
-        function setMood(mood, btn) {
-            document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
+        // CLICK FRENZY GAME
+        function startClickerGame() {
+            document.getElementById('gameTitle').textContent = '💥 CLICK FRENZY';
+            const gameArea = document.getElementById('gameArea');
+            const scoreDisplay = document.getElementById('scoreDisplay');
             
-            const moodMessages = {
-                'amazing': "🤩 Your energy is infectious! Blobby feeds off it!",
-                'happy': "😊 That's wonderful! Keep spreading those good vibes!",
-                'chill': "😌 *takes a deep breath* Ahh, peaceful vibes!",
-                'tired': "😴 *offers virtual blanket* Rest up, friend!",
-                'sad': "🥺 *hugs you* It'll get better. You're not alone! 💙"
+            gameArea.innerHTML = '';
+            gameArea.style.position = 'relative';
+            gameArea.style.background = 'radial-gradient(circle, #ff6b81, #a29bfe)';
+            
+            let score = 0;
+            let timeLeft = 30;
+            
+            function spawnBlob() {
+                const blob = document.createElement('div');
+                blob.className = 'blob-target';
+                blob.textContent = ['🩷', '💖', '💕', '💗', '✨'][Math.floor(Math.random() * 5)];
+                blob.style.left = Math.random() * (gameArea.offsetWidth - 60) + 'px';
+                blob.style.top = Math.random() * (gameArea.offsetHeight - 60) + 'px';
+                
+                blob.onclick = () => {
+                    score++;
+                    scoreDisplay.textContent = `SCORE: ${score} | TIME: ${timeLeft}s`;
+                    blob.remove();
+                    spawnBlob();
+                };
+                
+                gameArea.appendChild(blob);
+                
+                setTimeout(() => blob.remove(), 2000);
+            }
+            
+            for (let i = 0; i < 3; i++) spawnBlob();
+            
+            gameInterval = setInterval(() => {
+                timeLeft--;
+                scoreDisplay.textContent = `SCORE: ${score} | TIME: ${timeLeft}s`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(gameInterval);
+                    alert(`⏰ TIME'S UP! Final Score: ${score}`);
+                    closeGame();
+                }
+            }, 1000);
+            
+            scoreDisplay.textContent = 'SCORE: 0 | TIME: 30s';
+        }
+
+        // SNAKE BLOB GAME
+        function startSnakeGame() {
+            document.getElementById('gameTitle').textContent = '🐍 SNAKE BLOB';
+            const gameArea = document.getElementById('gameArea');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            const controls = document.getElementById('gameControls');
+            
+            gameArea.innerHTML = '<canvas id="snakeCanvas" width="400" height="400"></canvas>';
+            const canvas = document.getElementById('snakeCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            const gridSize = 20;
+            let snake = [{x: 10, y: 10}];
+            let direction = {x: 1, y: 0};
+            let food = {x: 15, y: 15};
+            let score = 0;
+            
+            controls.innerHTML = `
+                <button class="control-btn" onclick="changeDir(0,-1)">⬆️</button><br>
+                <button class="control-btn" onclick="changeDir(-1,0)">⬅️</button>
+                <button class="control-btn" onclick="changeDir(1,0)">➡️</button><br>
+                <button class="control-btn" onclick="changeDir(0,1)">⬇️</button>
+            `;
+            
+            window.changeDir = (x, y) => {
+                if (direction.x !== -x && direction.y !== -y) {
+                    direction = {x, y};
+                }
             };
             
-            document.getElementById('message').textContent = moodMessages[mood];
-            createFloatingEmojis(['💖', '✨']);
-        }
-
-        // Play card games
-        function playCardGame(game) {
-            if (game === 'memory') {
-                document.getElementById('message').textContent = '🧠 Memory Game: Click the cards to find pairs! (Coming soon!)';
-            } else if (game === 'click') {
-                document.getElementById('message').textContent = '👆 Click Challenge: How fast can you click? Test yourself!';
-            } else if (game === 'magic') {
-                const answers = [
-                    'Yes definitely! ✨', 'My sources say... ABSOLUTELY! 🎉',
-                    'Ask again later... 🤔', 'The universe is unsure 🤷',
-                    'Probably not... 😅', 'Nope, sorry! 🙈'
-                ];
-                document.getElementById('message').textContent = '🔮 *shakes magic ball* ' + answers[Math.floor(Math.random() * answers.length)];
-            }
-        }
-
-        // Update counter
-        function updateCounter(delta) {
-            clickCounter += delta;
-            if (clickCounter < 0) clickCounter = 0;
-            document.getElementById('clickCounter').textContent = clickCounter;
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowUp') changeDir(0, -1);
+                if (e.key === 'ArrowDown') changeDir(0, 1);
+                if (e.key === 'ArrowLeft') changeDir(-1, 0);
+                if (e.key === 'ArrowRight') changeDir(1, 0);
+            });
             
-            if (delta > 0) {
-                createFloatingEmojis(['⭐', '✨', '💫']);
-            }
-        }
-
-        // Create floating emojis
-        function createFloatingEmojis(emojis) {
-            for (let i = 0; i < 5; i++) {
-                setTimeout(() => {
-                    const emoji = document.createElement('div');
-                    emoji.className = 'floating-emoji';
-                    emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                    emoji.style.left = (30 + Math.random() * 40) + '%';
-                    emoji.style.top = '50%';
-                    document.body.appendChild(emoji);
-                    
-                    setTimeout(() => emoji.remove(), 3000);
-                }, i * 100);
-            }
-        }
-
-        // Mouse trail effect
-        document.addEventListener('mousemove', function(e) {
-            if (Math.random() > 0.9) {
-                const trail = document.createElement('div');
-                trail.className = 'rainbow-trail';
-                trail.style.left = e.pageX + 'px';
-                trail.style.top = e.pageY + 'px';
-                trail.style.background = `hsl(${Math.random() * 360}, 70%, 60%)`;
-                document.body.appendChild(trail);
+            function gameLoop() {
+                const head = {x: snake[0].x + direction.x, y: snake[0].y + direction.y};
                 
-                setTimeout(() => trail.remove(), 1000);
+                if (head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 20 ||
+                    snake.some(s => s.x === head.x && s.y === head.y)) {
+                    clearInterval(gameInterval);
+                    alert(`💀 GAME OVER! Score: ${score}`);
+                    closeGame();
+                    return;
+                }
+                
+                snake.unshift(head);
+                
+                if (head.x === food.x && head.y === food.y) {
+                    score++;
+                    food = {
+                        x: Math.floor(Math.random() * 20),
+                        y: Math.floor(Math.random() * 20)
+                    };
+                    scoreDisplay.textContent = `SCORE: ${score}`;
+                } else {
+                    snake.pop();
+                }
+                
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#0f0';
+                snake.forEach(s => ctx.fillRect(s.x * gridSize, s.y * gridSize, gridSize - 2, gridSize - 2));
+                
+                ctx.fillStyle = '#f00';
+                ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
             }
-        });
+            
+            scoreDisplay.textContent = 'SCORE: 0';
+            gameInterval = setInterval(gameLoop, 150);
+        }
 
-        // Initialize
-        createStars();
+        // REACTION TEST GAME
+        function startReactionGame() {
+            document.getElementById('gameTitle').textContent = '⚡ REACTION TEST';
+            const gameArea = document.getElementById('gameArea');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            const controls = document.getElementById('gameControls');
+            
+            gameArea.innerHTML = '<div style="padding: 50px; text-align: center; color: #fff; font-size: 2rem;">Wait for it...</div>';
+            controls.innerHTML = '';
+            scoreDisplay.textContent = 'Get ready...';
+            
+            const waitTime = 2000 + Math.random() * 3000;
+            let startTime;
+            
+            setTimeout(() => {
+                gameArea.style.background = '#0f0';
+                gameArea.innerHTML = '<div style="padding: 50px; text-align: center; color: #000; font-size: 3rem;">CLICK NOW!</div>';
+                startTime = Date.now();
+                
+                gameArea.onclick = () => {
+                    const reactionTime = Date.now() - startTime;
+                    gameArea.style.background = '#000';
+                    scoreDisplay.textContent = `⚡ ${reactionTime}ms`;
+                    gameArea.innerHTML = `<div style="padding: 50px; text-align: center; color: #fff; font-size: 2rem;">Your reaction time: ${reactionTime}ms!</div>`;
+                    gameArea.onclick = null;
+                    
+                    setTimeout(() => {
+                        alert(`⚡ Reaction time: ${reactionTime}ms\n${reactionTime < 200 ? '🔥 AMAZING!' : reactionTime < 300 ? '👍 GOOD!' : '🤔 Keep practicing!'}`);
+                        closeGame();
+                    }, 2000);
+                };
+            }, waitTime);
+        }
 
-        // Periodic encouragement
+        // WHACK-A-BLOB GAME
+        function startWhackABlobGame() {
+            document.getElementById('gameTitle').textContent = '🔨 WHACK-A-BLOB';
+            const gameArea = document.getElementById('gameArea');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            
+            gameArea.innerHTML = '';
+            gameArea.style.background = '#8B4513';
+            gameArea.style.display = 'grid';
+            gameArea.style.gridTemplateColumns = 'repeat(3, 1fr)';
+            gameArea.style.gap = '10px';
+            gameArea.style.padding = '20px';
+            
+            let score = 0;
+            let timeLeft = 30;
+            const holes = [];
+            
+            for (let i = 0; i < 9; i++) {
+                const hole = document.createElement('div');
+                hole.style.background = '#654321';
+                hole.style.border = '5px inset #000';
+                hole.style.borderRadius = '50%';
+                hole.style.height = '100px';
+                hole.style.display = 'flex';
+                hole.style.alignItems = 'center';
+                hole.style.justifyContent = 'center';
+                hole.style.fontSize = '3rem';
+                hole.style.cursor = 'pointer';
+                hole.dataset.active = 'false';
+                
+                hole.onclick = () => {
+                    if (hole.dataset.active === 'true') {
+                        score++;
+                        hole.textContent = '💥';
+                        hole.dataset.active = 'false';
+                        scoreDisplay.textContent = `SCORE: ${score} | TIME: ${timeLeft}s`;
+                        setTimeout(() => hole.textContent = '', 200);
+                    }
+                };
+                
+                gameArea.appendChild(hole);
+                holes.push(hole);
+            }
+            
+            function popBlob() {
+                const availableHoles = holes.filter(h => h.dataset.active === 'false');
+                if (availableHoles.length > 0) {
+                    const hole = availableHoles[Math.floor(Math.random() * availableHoles.length)];
+                    hole.textContent = '🩷';
+                    hole.dataset.active = 'true';
+                    
+                    setTimeout(() => {
+                        if (hole.dataset.active === 'true') {
+                            hole.textContent = '';
+                            hole.dataset.active = 'false';
+                        }
+                    }, 1000);
+                }
+            }
+            
+            gameInterval = setInterval(() => {
+                timeLeft--;
+                scoreDisplay.textContent = `SCORE: ${score} | TIME: ${timeLeft}s`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(gameInterval);
+                    alert(`🎯 GAME OVER! Final Score: ${score}`);
+                    closeGame();
+                }
+                
+                if (Math.random() < 0.6) popBlob();
+            }, 1000);
+            
+            scoreDisplay.textContent = 'SCORE: 0 | TIME: 30s';
+        }
+
+        // Counter animation
         setInterval(() => {
-            const encouragements = [
-                "You're doing great! Keep going! 💪",
-                "Blobby believes in you! 🌟",
-                "Take a deep breath... you've got this! 🌈",
-                "Remember to stay hydrated! 💧",
-                "You're one of a kind! ✨"
-            ];
-            if (Math.random() > 0.7) {
-                document.getElementById('message').textContent = encouragements[Math.floor(Math.random() * encouragements.length)];
-            }
-        }, 15000);
+            const counter = document.getElementById('counterDisplay');
+            counter.textContent = String(Math.floor(Math.random() * 999999) + 1).padStart(6, '0');
+        }, 5000);
     </script>
 </body>
 </html>
