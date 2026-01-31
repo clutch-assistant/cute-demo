@@ -858,6 +858,50 @@
                 }
             });
             
+            // Mobile/Touch controls
+            let touchX = null;
+            let autoShootInterval = null;
+            
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+                // Auto-shoot when touching
+                if (!autoShootInterval) {
+                    autoShootInterval = setInterval(() => {
+                        if (!gameOver && touchX !== null) {
+                            bullets.push({ x: player.x + 20, y: player.y, width: 4, height: 10 });
+                        }
+                    }, 200);
+                }
+            });
+            
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                touchX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+            });
+            
+            canvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                touchX = null;
+                if (autoShootInterval) {
+                    clearInterval(autoShootInterval);
+                    autoShootInterval = null;
+                }
+            });
+            
+            // Mouse controls (also works on mobile)
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                player.x = Math.max(0, Math.min(canvas.width - player.width, mouseX - player.width / 2));
+            });
+            
+            canvas.addEventListener('click', (e) => {
+                if (!gameOver) {
+                    bullets.push({ x: player.x + 20, y: player.y, width: 4, height: 10 });
+                }
+            });
+            
             // Spawn asteroids
             function spawnAsteroid() {
                 if (!gameOver) {
@@ -885,9 +929,15 @@
                     ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, 2, 2);
                 }
                 
-                // Move player
+                // Move player (keyboard)
                 if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
                 if (keys['ArrowRight'] && player.x < canvas.width - player.width) player.x += player.speed;
+                
+                // Move player (touch)
+                if (touchX !== null) {
+                    const targetX = touchX - player.width / 2;
+                    player.x = Math.max(0, Math.min(canvas.width - player.width, targetX));
+                }
                 
                 // Draw player ship
                 ctx.fillStyle = '#00ff00';
@@ -954,7 +1004,7 @@
             }
             
             // Start game
-            scoreDisplay.textContent = 'SCORE: 0 | Use ← → arrows to move, SPACE to shoot!';
+            scoreDisplay.textContent = 'SCORE: 0 | Desktop: ← → + SPACE | Mobile: Touch to move & shoot!';
             setInterval(spawnAsteroid, 1500);
             gameLoop();
         }
