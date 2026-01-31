@@ -364,6 +364,13 @@
                 <p><b>Difficulty:</b> ⭐⭐⭐</p>
                 <button class="play-btn">PLAY NOW!</button>
             </div>
+
+            <div class="game-card" onclick="openGame('spaceblaster')">
+                <h3>🚀 SPACE BLASTER</h3>
+                <p>Blast through waves of asteroids!</p>
+                <p><b>Difficulty:</b> ⭐⭐⭐⭐</p>
+                <button class="play-btn">PLAY NOW!</button>
+            </div>
         </div>
 
         <div class="footer">
@@ -426,6 +433,9 @@
                     break;
                 case 'whackablob':
                     startWhackABlobGame();
+                    break;
+                case 'spaceblaster':
+                    startSpaceBlasterGame();
                     break;
             }
         }
@@ -804,6 +814,149 @@
             }, 1000);
             
             scoreDisplay.textContent = 'SCORE: 0 | TIME: 30s';
+        }
+
+        // SPACE BLASTER GAME
+        function startSpaceBlasterGame() {
+            document.getElementById('gameTitle').textContent = '🚀 SPACE BLASTER';
+            const gameArea = document.getElementById('gameArea');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            
+            gameArea.innerHTML = '<canvas id="spaceCanvas" width="600" height="400"></canvas>';
+            const canvas = document.getElementById('spaceCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            let score = 0;
+            let gameOver = false;
+            
+            // Player ship
+            const player = {
+                x: 275,
+                y: 350,
+                width: 50,
+                height: 30,
+                speed: 8
+            };
+            
+            // Bullets
+            const bullets = [];
+            const bulletSpeed = 8;
+            
+            // Asteroids
+            const asteroids = [];
+            let asteroidSpeed = 2;
+            
+            // Controls
+            const keys = {};
+            document.addEventListener('keydown', (e) => keys[e.key] = true);
+            document.addEventListener('keyup', (e) => keys[e.key] = false);
+            
+            // Shoot bullets
+            document.addEventListener('keydown', (e) => {
+                if (e.key === ' ' && !gameOver) {
+                    bullets.push({ x: player.x + 20, y: player.y, width: 4, height: 10 });
+                }
+            });
+            
+            // Spawn asteroids
+            function spawnAsteroid() {
+                if (!gameOver) {
+                    asteroids.push({
+                        x: Math.random() * (canvas.width - 30),
+                        y: -30,
+                        width: 30,
+                        height: 30,
+                        speed: asteroidSpeed
+                    });
+                }
+            }
+            
+            // Game loop
+            function gameLoop() {
+                if (gameOver) return;
+                
+                // Clear canvas
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw stars
+                for (let i = 0; i < 50; i++) {
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, 2, 2);
+                }
+                
+                // Move player
+                if (keys['ArrowLeft'] && player.x > 0) player.x -= player.speed;
+                if (keys['ArrowRight'] && player.x < canvas.width - player.width) player.x += player.speed;
+                
+                // Draw player ship
+                ctx.fillStyle = '#00ff00';
+                ctx.beginPath();
+                ctx.moveTo(player.x + 25, player.y);
+                ctx.lineTo(player.x, player.y + 30);
+                ctx.lineTo(player.x + 50, player.y + 30);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Update and draw bullets
+                for (let i = bullets.length - 1; i >= 0; i--) {
+                    bullets[i].y -= bulletSpeed;
+                    ctx.fillStyle = '#ffff00';
+                    ctx.fillRect(bullets[i].x, bullets[i].y, bullets[i].width, bullets[i].height);
+                    
+                    if (bullets[i].y < 0) bullets.splice(i, 1);
+                }
+                
+                // Update and draw asteroids
+                for (let i = asteroids.length - 1; i >= 0; i--) {
+                    asteroids[i].y += asteroids[i].speed;
+                    
+                    // Draw asteroid
+                    ctx.fillStyle = '#ff00ff';
+                    ctx.beginPath();
+                    ctx.arc(asteroids[i].x + 15, asteroids[i].y + 15, 15, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Check collision with bullets
+                    for (let j = bullets.length - 1; j >= 0; j--) {
+                        if (bullets[j].x > asteroids[i].x &&
+                            bullets[j].x < asteroids[i].x + asteroids[i].width &&
+                            bullets[j].y > asteroids[i].y &&
+                            bullets[j].y < asteroids[i].y + asteroids[i].height) {
+                            asteroids.splice(i, 1);
+                            bullets.splice(j, 1);
+                            score += 10;
+                            scoreDisplay.textContent = `SCORE: ${score}`;
+                            
+                            // Increase difficulty
+                            if (score % 100 === 0) asteroidSpeed += 0.5;
+                            break;
+                        }
+                    }
+                    
+                    // Check collision with player
+                    if (asteroids[i] && asteroids[i].y + asteroids[i].height > player.y &&
+                        asteroids[i].x + asteroids[i].width > player.x &&
+                        asteroids[i].x < player.x + player.width) {
+                        gameOver = true;
+                        alert(`💥 GAME OVER! Final Score: ${score}`);
+                        closeGame();
+                        return;
+                    }
+                    
+                    // Remove if off screen
+                    if (asteroids[i] && asteroids[i].y > canvas.height) {
+                        asteroids.splice(i, 1);
+                    }
+                }
+                
+                requestAnimationFrame(gameLoop);
+            }
+            
+            // Start game
+            scoreDisplay.textContent = 'SCORE: 0 | Use ← → arrows to move, SPACE to shoot!';
+            setInterval(spawnAsteroid, 1500);
+            gameLoop();
         }
 
         // Counter animation
