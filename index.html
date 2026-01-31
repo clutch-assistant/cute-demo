@@ -3,68 +3,797 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎨 Cute Demo - Building...</title>
+    <title>✨ Welcome to Blobby's World! ✨</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ffecd2 100%);
+            overflow-x: hidden;
+            cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><text y="18" font-size="18">🩷</text></svg>'), auto;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #e84393;
+            text-shadow: 3px 3px 0 #fd79a8, 6px 6px 0 rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: #6c5ce7;
+            margin-bottom: 30px;
+        }
+
+        /* Blobby the Blob */
+        .blobby-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 30px auto;
+        }
+
+        .blobby {
+            width: 180px;
+            height: 180px;
+            background: linear-gradient(145deg, #fd79a8, #e84393);
+            border-radius: 50% 50% 45% 55% / 55% 55% 45% 45%;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            animation: wobble 3s ease-in-out infinite, float 4s ease-in-out infinite;
+            box-shadow: 
+                inset -20px -20px 40px rgba(0,0,0,0.1),
+                inset 20px 20px 40px rgba(255,255,255,0.3),
+                0 20px 40px rgba(232, 67, 147, 0.4);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .blobby:hover {
+            transform: translate(-50%, -50%) scale(1.1) !important;
+        }
+
+        @keyframes wobble {
+            0%, 100% { border-radius: 50% 50% 45% 55% / 55% 55% 45% 45%; }
+            25% { border-radius: 55% 45% 50% 50% / 50% 50% 55% 45%; }
+            50% { border-radius: 45% 55% 55% 45% / 45% 45% 50% 50%; }
+            75% { border-radius: 50% 50% 45% 55% / 55% 55% 45% 45%; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+            25% { transform: translate(-50%, -55%) rotate(3deg); }
+            75% { transform: translate(-50%, -45%) rotate(-3deg); }
+        }
+
+        .eyes {
+            position: absolute;
+            top: 35%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 30px;
+        }
+
+        .eye {
+            width: 35px;
+            height: 45px;
+            background: white;
+            border-radius: 50%;
+            position: relative;
+            animation: blink 4s infinite;
+        }
+
+        .eye::after {
+            content: '';
+            width: 18px;
+            height: 18px;
+            background: #2d3436;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: lookAround 6s infinite;
+        }
+
+        @keyframes blink {
+            0%, 45%, 55%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.1); }
+        }
+
+        @keyframes lookAround {
+            0%, 100% { transform: translate(-50%, -50%); }
+            20% { transform: translate(-80%, -40%); }
+            40% { transform: translate(-20%, -60%); }
+            60% { transform: translate(-80%, -60%); }
+            80% { transform: translate(-20%, -40%); }
+        }
+
+        .mouth {
+            position: absolute;
+            top: 65%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 20px;
+            border-bottom: 5px solid #2d3436;
+            border-radius: 0 0 50% 50%;
+            animation: smile 3s ease-in-out infinite;
+        }
+
+        @keyframes smile {
+            0%, 100% { height: 20px; }
+            50% { height: 25px; }
+        }
+
+        .cheeks {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .cheek {
+            width: 25px;
+            height: 15px;
+            background: rgba(255, 150, 180, 0.6);
+            border-radius: 50%;
+        }
+
+        /* Interactive Buttons */
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+
+        .cute-btn {
+            padding: 15px 35px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cute-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.5s ease;
+        }
+
+        .cute-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-pink {
+            background: linear-gradient(135deg, #fd79a8, #e84393);
+            color: white;
+            box-shadow: 0 8px 25px rgba(232, 67, 147, 0.4);
+        }
+
+        .btn-pink:hover {
+            transform: translateY(-5px) scale(1.05);
+        }
+
+        .btn-purple {
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+            color: white;
+            box-shadow: 0 8px 25px rgba(108, 92, 231, 0.4);
+        }
+
+        .btn-purple:hover {
+            transform: translateY(-5px) scale(1.05);
+        }
+
+        .btn-yellow {
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            color: #6c5ce7;
+            box-shadow: 0 8px 25px rgba(253, 203, 110, 0.4);
+        }
+
+        .btn-yellow:hover {
+            transform: translateY(-5px) scale(1.05);
+        }
+
+        /* Message Box */
+        .message-box {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px auto;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            min-height: 100px;
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .message {
+            font-size: 1.4rem;
+            color: #6c5ce7;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Floating Emojis */
+        .floating-emoji {
+            position: fixed;
+            font-size: 2rem;
+            pointer-events: none;
+            animation: floatUp 3s ease-out forwards;
+            z-index: 1000;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+            100% { opacity: 0; transform: translateY(-200px) rotate(360deg); }
+        }
+
+        /* Rainbow Trail */
+        .rainbow-trail {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: trailFade 1s ease-out forwards;
+        }
+
+        @keyframes trailFade {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        /* Stars Background */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .star {
+            position: absolute;
+            font-size: 1.5rem;
+            animation: twinkle 2s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* Interactive Cards */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-15px) rotate(2deg);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .card h3 {
+            color: #6c5ce7;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: #636e72;
+            font-size: 0.95rem;
+        }
+
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            pointer-events: none;
+            animation: confettiFall linear forwards;
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Rainbow Wave */
+        .rainbow-wave {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 100px;
+            display: flex;
+            animation: waveMove 10s linear infinite;
+        }
+
+        .wave-stripe {
+            width: 10%;
+            height: 100%;
+        }
+
+        @keyframes waveMove {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Mood Selector */
+        .mood-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px auto;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .mood-container h3 {
+            color: #6c5ce7;
+            margin-bottom: 20px;
+        }
+
+        .mood-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .mood-btn {
+            font-size: 2rem;
+            background: none;
+            border: 3px solid transparent;
+            border-radius: 50%;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mood-btn:hover {
+            transform: scale(1.2);
+            background: #f8f9fa;
+        }
+
+        .mood-btn.selected {
+            border-color: #e84393;
+            background: #ffeaa7;
+        }
+
+        /* Counter Display */
+        .counter-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .counter-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .counter-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .counter-minus {
+            background: #ff7675;
             color: white;
         }
-        
-        .container {
-            text-align: center;
-            padding: 2rem;
+
+        .counter-plus {
+            background: #00b894;
+            color: white;
         }
-        
-        h1 {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            animation: bounce 2s infinite;
+
+        .counter-display {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #6c5ce7;
+            min-width: 80px;
         }
-        
-        p {
-            font-size: 1.5rem;
-            opacity: 0.9;
+
+        /* Footer Sparkles */
+        .footer {
+            margin-top: 50px;
+            padding: 20px;
+            color: #6c5ce7;
         }
-        
-        .loading {
-            margin-top: 2rem;
-            font-size: 2rem;
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-        
-        .spinner {
+
+        .sparkle {
             display: inline-block;
-            animation: spin 1s linear infinite;
+            animation: sparkleAnim 1.5s infinite;
         }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+
+        @keyframes sparkleAnim {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* Pet Me Zone */
+        .pet-zone {
+            margin: 30px auto;
+            max-width: 300px;
+        }
+
+        .pet-prompt {
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            padding: 20px;
+            border-radius: 20px;
+            color: #6c5ce7;
+            font-weight: bold;
+        }
+
+        .pet-count {
+            font-size: 2rem;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
+    <!-- Stars Background -->
+    <div class="stars" id="stars"></div>
+
+    <!-- Rainbow Wave Footer -->
+    <div class="rainbow-wave">
+        <div class="wave-stripe" style="background: #ff6b81;"></div>
+        <div class="wave-stripe" style="background: #ffa502;"></div>
+        <div class="wave-stripe" style="background: #ffdd59;"></div>
+        <div class="wave-stripe" style="background: #7bed9f;"></div>
+        <div class="wave-stripe" style="background: #70a1ff;"></div>
+        <div class="wave-stripe" style="background: #5352ed;"></div>
+        <div class="wave-stripe" style="background: #ff6b81;"></div>
+        <div class="wave-stripe" style="background: #ffa502;"></div>
+        <div class="wave-stripe" style="background: #ffdd59;"></div>
+        <div class="wave-stripe" style="background: #7bed9f;"></div>
+        <div class="wave-stripe" style="background: #70a1ff;"></div>
+        <div class="wave-stripe" style="background: #5352ed;"></div>
+        <div class="wave-stripe" style="background: #ff6b81;"></div>
+        <div class="wave-stripe" style="background: #ffa502;"></div>
+        <div class="wave-stripe" style="background: #ffdd59;"></div>
+        <div class="wave-stripe" style="background: #7bed9f;"></div>
+        <div class="wave-stripe" style="background: #70a1ff;"></div>
+        <div class="wave-stripe" style="background: #5352ed;"></div>
+        <div class="wave-stripe" style="background: #ff6b81;"></div>
+        <div class="wave-stripe" style="background: #ffa502;"></div>
+    </div>
+
     <div class="container">
-        <h1>🎨</h1>
-        <p>Something cute is being built...</p>
-        <div class="loading">
-            <span class="spinner">⚙️</span>
+        <!-- Title -->
+        <h1>✨ Blobby's World ✨</h1>
+        <p class="subtitle">A little corner of internet cuteness just for you! 🩷</p>
+
+        <!-- Blobby -->
+        <div class="blobby-container">
+            <div class="blobby" id="blobby">
+                <div class="eyes">
+                    <div class="eye"></div>
+                    <div class="eye"></div>
+                </div>
+                <div class="mouth"></div>
+                <div class="cheeks">
+                    <div class="cheek"></div>
+                    <div class="cheek"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Box -->
+        <div class="message-box">
+            <p class="message" id="message">👋 Hi there! I'm Blobby! Click around and have fun!</p>
+        </div>
+
+        <!-- Interactive Buttons -->
+        <div class="button-container">
+            <button class="cute-btn btn-pink" onclick="showLove()">💖 Show Love</button>
+            <button class="cute-btn btn-purple" onclick="makeWishes()">🌟 Make Wishes</button>
+            <button class="cute-btn btn-yellow" onclick="throwConfetti()">🎉 Celebrate!</button>
+        </div>
+
+        <!-- Pet Counter -->
+        <div class="pet-zone">
+            <div class="pet-prompt">
+                ✋ Pet Blobby!
+                <div class="pet-count">🐾 <span id="petCount">0</span> pets given</div>
+            </div>
+        </div>
+
+        <!-- Mood Selector -->
+        <div class="mood-container">
+            <h3>How are you feeling today?</h3>
+            <div class="mood-buttons">
+                <button class="mood-btn" onclick="setMood('amazing', this)">🤩</button>
+                <button class="mood-btn" onclick="setMood('happy', this)">😊</button>
+                <button class="mood-btn" onclick="setMood('chill', this)">😌</button>
+                <button class="mood-btn" onclick="setMood('tired', this)">😴</button>
+                <button class="mood-btn" onclick="setMood('sad', this)">🥺</button>
+            </div>
+        </div>
+
+        <!-- Fun Cards -->
+        <h2 style="color: #6c5ce7; margin-bottom: 20px;">🎮 Mini Games & Fun!</h2>
+        <div class="cards-container">
+            <div class="card" onclick="playCardGame('memory')">
+                <div class="card-icon">🧠</div>
+                <h3>Memory Match</h3>
+                <p>Click cards to find matching pairs!</p>
+            </div>
+            <div class="card" onclick="playCardGame('click')">
+                <div class="card-icon">👆</div>
+                <h3>Click Challenge</h3>
+                <p>See how fast you can click!</p>
+            </div>
+            <div class="card" onclick="playCardGame('magic')">
+                <div class="card-icon">🔮</div>
+                <h3>Magic 8-Ball</h3>
+                <p>Ask a question and reveal your fate!</p>
+            </div>
+        </div>
+
+        <!-- Click Counter -->
+        <div class="mood-container">
+            <h3>🎯 Click Power!</h3>
+            <div class="counter-container">
+                <button class="counter-btn counter-minus" onclick="updateCounter(-1)">−</button>
+                <div class="counter-display" id="clickCounter">0</div>
+                <button class="counter-btn counter-plus" onclick="updateCounter(1)">+</button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><span class="sparkle">✨</span> Made with 🩷 and ☕ <span class="sparkle">✨</span></p>
+            <p style="margin-top: 10px;">Thanks for visiting! You deserve all the good things! 🌈</p>
         </div>
     </div>
+
+    <script>
+        // State
+        let petCount = 0;
+        let clickCounter = 0;
+        const messages = [
+            "You're amazing! 🌟",
+            "Blobby loves you! 🩷",
+            "Keep being awesome! ✨",
+            "You light up the world! 💫",
+            "Blobby gives you a hug! 🤗",
+            "You're doing great, friend! 🎉",
+            "Sending you virtual cookies! 🍪",
+            "Your smile is contagious! 😊",
+            "Blobby thinks you're cool! 😎",
+            "Have a wonderful day! 🌈"
+        ];
+
+        // Initialize stars
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            const starEmojis = ['⭐', '✨', '💫', '🌟'];
+            
+            for (let i = 0; i < 30; i++) {
+                const star = document.createElement('span');
+                star.className = 'star';
+                star.textContent = starEmojis[Math.floor(Math.random() * starEmojis.length)];
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 2 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Show random message
+        function showLove() {
+            const msg = messages[Math.floor(Math.random() * messages.length)];
+            document.getElementById('message').textContent = msg + ' 💕';
+            createFloatingEmojis(['💖', '💕', '💗', '🩷', '✨']);
+        }
+
+        // Make wishes
+        function makeWishes() {
+            document.getElementById('message').textContent = '🌟 Your wish is being granted... 🌟';
+            createFloatingEmojis(['⭐', '✨', '🌟', '💫']);
+            setTimeout(() => {
+                const wishes = ['✨ Great things are coming your way!', '💖 Someone special is thinking of you!', '🌈 Today will be amazing!'];
+                document.getElementById('message').textContent = wishes[Math.floor(Math.random() * wishes.length)];
+            }, 2000);
+        }
+
+        // Confetti celebration
+        function throwConfetti() {
+            document.getElementById('message').textContent = '🎉 WOOOHOOO! Celebrate yourself! 🎉';
+            const colors = ['#ff6b81', '#ffa502', '#ffdd59', '#7bed9f', '#70a1ff', '#5352ed'];
+            
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 4000);
+                }, i * 30);
+            }
+        }
+
+        // Pet Blobby
+        document.getElementById('blobby').addEventListener('click', function() {
+            petCount++;
+            document.getElementById('petCount').textContent = petCount;
+            
+            // Blobby reaction
+            this.style.transform = 'translate(-50%, -50%) scale(1.2)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 200);
+            
+            createFloatingEmojis(['💖', '🩷', '💕']);
+            
+            const petMessages = ['*Blobby purrs happily* 🐱', '*Blobby does a happy wiggle* 💃', '*Blobby blushes* 🥰'];
+            document.getElementById('message').textContent = petMessages[Math.floor(Math.random() * petMessages.length)];
+        });
+
+        // Set mood
+        function setMood(mood, btn) {
+            document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            
+            const moodMessages = {
+                'amazing': "🤩 Your energy is infectious! Blobby feeds off it!",
+                'happy': "😊 That's wonderful! Keep spreading those good vibes!",
+                'chill': "😌 *takes a deep breath* Ahh, peaceful vibes!",
+                'tired': "😴 *offers virtual blanket* Rest up, friend!",
+                'sad': "🥺 *hugs you* It'll get better. You're not alone! 💙"
+            };
+            
+            document.getElementById('message').textContent = moodMessages[mood];
+            createFloatingEmojis(['💖', '✨']);
+        }
+
+        // Play card games
+        function playCardGame(game) {
+            if (game === 'memory') {
+                document.getElementById('message').textContent = '🧠 Memory Game: Click the cards to find pairs! (Coming soon!)';
+            } else if (game === 'click') {
+                document.getElementById('message').textContent = '👆 Click Challenge: How fast can you click? Test yourself!';
+            } else if (game === 'magic') {
+                const answers = [
+                    'Yes definitely! ✨', 'My sources say... ABSOLUTELY! 🎉',
+                    'Ask again later... 🤔', 'The universe is unsure 🤷',
+                    'Probably not... 😅', 'Nope, sorry! 🙈'
+                ];
+                document.getElementById('message').textContent = '🔮 *shakes magic ball* ' + answers[Math.floor(Math.random() * answers.length)];
+            }
+        }
+
+        // Update counter
+        function updateCounter(delta) {
+            clickCounter += delta;
+            if (clickCounter < 0) clickCounter = 0;
+            document.getElementById('clickCounter').textContent = clickCounter;
+            
+            if (delta > 0) {
+                createFloatingEmojis(['⭐', '✨', '💫']);
+            }
+        }
+
+        // Create floating emojis
+        function createFloatingEmojis(emojis) {
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const emoji = document.createElement('div');
+                    emoji.className = 'floating-emoji';
+                    emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    emoji.style.left = (30 + Math.random() * 40) + '%';
+                    emoji.style.top = '50%';
+                    document.body.appendChild(emoji);
+                    
+                    setTimeout(() => emoji.remove(), 3000);
+                }, i * 100);
+            }
+        }
+
+        // Mouse trail effect
+        document.addEventListener('mousemove', function(e) {
+            if (Math.random() > 0.9) {
+                const trail = document.createElement('div');
+                trail.className = 'rainbow-trail';
+                trail.style.left = e.pageX + 'px';
+                trail.style.top = e.pageY + 'px';
+                trail.style.background = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                document.body.appendChild(trail);
+                
+                setTimeout(() => trail.remove(), 1000);
+            }
+        });
+
+        // Initialize
+        createStars();
+
+        // Periodic encouragement
+        setInterval(() => {
+            const encouragements = [
+                "You're doing great! Keep going! 💪",
+                "Blobby believes in you! 🌟",
+                "Take a deep breath... you've got this! 🌈",
+                "Remember to stay hydrated! 💧",
+                "You're one of a kind! ✨"
+            ];
+            if (Math.random() > 0.7) {
+                document.getElementById('message').textContent = encouragements[Math.floor(Math.random() * encouragements.length)];
+            }
+        }, 15000);
+    </script>
 </body>
 </html>
