@@ -378,6 +378,13 @@
                 <p><b>Difficulty:</b> ⭐⭐⭐⭐</p>
                 <button class="play-btn">PLAY NOW!</button>
             </div>
+
+            <div class="game-card" onclick="openGame('match3')">
+                <h3>💎 BLOB MATCH</h3>
+                <p>Swap blobs to match 3 in a row!</p>
+                <p><b>Difficulty:</b> ⭐⭐⭐</p>
+                <button class="play-btn">PLAY NOW!</button>
+            </div>
         </div>
 
         <div class="footer">
@@ -472,6 +479,9 @@
                     break;
                 case 'spaceblaster':
                     startSpaceBlasterGame();
+                    break;
+                case 'match3':
+                    startMatch3Game();
                     break;
             }
         }
@@ -1079,6 +1089,220 @@
             scoreDisplay.textContent = 'SCORE: 0 | Desktop: ← → + SPACE | Mobile: Touch to move & shoot!';
             setInterval(spawnAsteroid, 1500);
             gameLoop();
+        }
+
+        // BLOB MATCH (MATCH-3) GAME
+        function startMatch3Game() {
+            document.getElementById('gameTitle').textContent = '💎 BLOB MATCH';
+            const gameArea = document.getElementById('gameArea');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            
+            const gridSize = 8;
+            const blobs = ['🩷', '💙', '💚', '💛', '🧡', '💜'];
+            let grid = [];
+            let score = 0;
+            let moves = 30;
+            let selectedTile = null;
+            
+            gameArea.innerHTML = '<div id="match3Grid" style="display: grid; grid-template-columns: repeat(8, 50px); gap: 5px; justify-content: center; padding: 20px;"></div>';
+            const gridElement = document.getElementById('match3Grid');
+            
+            // Initialize grid
+            function createGrid() {
+                grid = [];
+                gridElement.innerHTML = '';
+                
+                for (let y = 0; y < gridSize; y++) {
+                    grid[y] = [];
+                    for (let x = 0; x < gridSize; x++) {
+                        const blob = blobs[Math.floor(Math.random() * blobs.length)];
+                        grid[y][x] = blob;
+                        
+                        const tile = document.createElement('div');
+                        tile.textContent = blob;
+                        tile.style.cssText = 'width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 2rem; background: #fff; border: 3px outset #808080; cursor: pointer; transition: all 0.2s;';
+                        tile.dataset.x = x;
+                        tile.dataset.y = y;
+                        
+                        // Touch and click handlers
+                        tile.addEventListener('click', () => handleTileClick(x, y, tile));
+                        tile.addEventListener('touchstart', (e) => {
+                            e.preventDefault();
+                            handleTileClick(x, y, tile);
+                        });
+                        
+                        gridElement.appendChild(tile);
+                    }
+                }
+                
+                // Remove initial matches
+                while (findMatches().length > 0) {
+                    removeMatches();
+                    fillGrid();
+                }
+            }
+            
+            function handleTileClick(x, y, tile) {
+                if (moves <= 0) return;
+                
+                if (!selectedTile) {
+                    selectedTile = {x, y, tile};
+                    tile.style.background = '#ffeb3b';
+                    tile.style.transform = 'scale(1.1)';
+                } else {
+                    // Check if adjacent
+                    const dx = Math.abs(selectedTile.x - x);
+                    const dy = Math.abs(selectedTile.y - y);
+                    
+                    if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
+                        // Swap tiles
+                        swapTiles(selectedTile.x, selectedTile.y, x, y);
+                        moves--;
+                        scoreDisplay.textContent = `SCORE: ${score} | MOVES: ${moves}`;
+                        
+                        setTimeout(() => {
+                            const matches = findMatches();
+                            if (matches.length > 0) {
+                                processMatches();
+                            } else {
+                                // Swap back if no match
+                                swapTiles(selectedTile.x, selectedTile.y, x, y);
+                            }
+                            
+                            if (moves <= 0) {
+                                setTimeout(() => {
+                                    const isNewHigh = saveHighScore('match3', score);
+                                    const highScore = getHighScore('match3');
+                                    const msg = isNewHigh ? 
+                                        `🏆 NEW HIGH SCORE! ${score} points! 🏆` :
+                                        `⏰ GAME OVER! Score: ${score} (High: ${highScore})`;
+                                    alert(msg);
+                                    closeGame();
+                                }, 500);
+                            }
+                        }, 300);
+                    }
+                    
+                    // Deselect
+                    selectedTile.tile.style.background = '#fff';
+                    selectedTile.tile.style.transform = 'scale(1)';
+                    tile.style.background = '#fff';
+                    tile.style.transform = 'scale(1)';
+                    selectedTile = null;
+                }
+            }
+            
+            function swapTiles(x1, y1, x2, y2) {
+                const temp = grid[y1][x1];
+                grid[y1][x1] = grid[y2][x2];
+                grid[y2][x2] = temp;
+                updateDisplay();
+            }
+            
+            function findMatches() {
+                const matches = [];
+                
+                // Check horizontal
+                for (let y = 0; y < gridSize; y++) {
+                    for (let x = 0; x < gridSize - 2; x++) {
+                        if (grid[y][x] === grid[y][x+1] && grid[y][x] === grid[y][x+2]) {
+                            let matchLength = 3;
+                            while (x + matchLength < gridSize && grid[y][x] === grid[y][x+matchLength]) {
+                                matchLength++;
+                            }
+                            for (let i = 0; i < matchLength; i++) {
+                                matches.push({x: x+i, y});
+                            }
+                            x += matchLength - 1;
+                        }
+                    }
+                }
+                
+                // Check vertical
+                for (let x = 0; x < gridSize; x++) {
+                    for (let y = 0; y < gridSize - 2; y++) {
+                        if (grid[y][x] === grid[y+1][x] && grid[y][x] === grid[y+2][x]) {
+                            let matchLength = 3;
+                            while (y + matchLength < gridSize && grid[y][x] === grid[y+matchLength][x]) {
+                                matchLength++;
+                            }
+                            for (let i = 0; i < matchLength; i++) {
+                                matches.push({x, y: y+i});
+                            }
+                            y += matchLength - 1;
+                        }
+                    }
+                }
+                
+                return matches;
+            }
+            
+            function removeMatches() {
+                const matches = findMatches();
+                matches.forEach(({x, y}) => {
+                    grid[y][x] = null;
+                });
+                return matches.length;
+            }
+            
+            function processMatches() {
+                const matchCount = removeMatches();
+                if (matchCount > 0) {
+                    score += matchCount * 10;
+                    scoreDisplay.textContent = `SCORE: ${score} | MOVES: ${moves}`;
+                    
+                    setTimeout(() => {
+                        fillGrid();
+                        setTimeout(() => {
+                            if (findMatches().length > 0) {
+                                processMatches();
+                            }
+                        }, 300);
+                    }, 200);
+                }
+            }
+            
+            function fillGrid() {
+                // Drop existing blobs
+                for (let x = 0; x < gridSize; x++) {
+                    for (let y = gridSize - 1; y >= 0; y--) {
+                        if (grid[y][x] === null) {
+                            // Find blob above
+                            for (let ny = y - 1; ny >= 0; ny--) {
+                                if (grid[ny][x] !== null) {
+                                    grid[y][x] = grid[ny][x];
+                                    grid[ny][x] = null;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Fill empty spaces
+                for (let y = 0; y < gridSize; y++) {
+                    for (let x = 0; x < gridSize; x++) {
+                        if (grid[y][x] === null) {
+                            grid[y][x] = blobs[Math.floor(Math.random() * blobs.length)];
+                        }
+                    }
+                }
+                
+                updateDisplay();
+            }
+            
+            function updateDisplay() {
+                const tiles = gridElement.children;
+                for (let y = 0; y < gridSize; y++) {
+                    for (let x = 0; x < gridSize; x++) {
+                        const index = y * gridSize + x;
+                        tiles[index].textContent = grid[y][x];
+                    }
+                }
+            }
+            
+            createGrid();
+            scoreDisplay.textContent = 'SCORE: 0 | MOVES: 30 | Swap adjacent blobs!';
         }
 
         // Counter animation
