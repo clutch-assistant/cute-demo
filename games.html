@@ -1768,12 +1768,16 @@
                 keys[e.key] = false;
             });
             
-            // Touch controls - improved for mobile
+            // Touch controls - controller-style layout
             controls.innerHTML = `
-                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 10px;">
-                    <button class="control-btn" id="leftBtn" style="min-width: 100px; min-height: 60px; font-size: 1.4rem; touch-action: none;">⬅️ LEFT</button>
-                    <button class="control-btn" id="jumpBtn" style="min-width: 100px; min-height: 60px; font-size: 1.4rem; touch-action: none;">⬆️ JUMP</button>
-                    <button class="control-btn" id="rightBtn" style="min-width: 100px; min-height: 60px; font-size: 1.4rem; touch-action: none;">➡️ RIGHT</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 0 20px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <div style="display: flex; gap: 5px;">
+                            <button class="control-btn" id="leftBtn" style="width: 70px; height: 50px; font-size: 1.2rem; touch-action: none;">⬅️</button>
+                            <button class="control-btn" id="rightBtn" style="width: 70px; height: 50px; font-size: 1.2rem; touch-action: none;">➡️</button>
+                        </div>
+                    </div>
+                    <button class="control-btn" id="jumpBtn" style="width: 80px; height: 80px; font-size: 1.8rem; touch-action: none; border-radius: 50%;">⬆️</button>
                 </div>
             `;
             
