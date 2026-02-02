@@ -1768,53 +1768,118 @@
                 keys[e.key] = false;
             });
             
-            // Touch controls
+            // Touch controls - improved for mobile
             controls.innerHTML = `
-                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                    <button class="control-btn" id="leftBtn">⬅️ LEFT</button>
-                    <button class="control-btn" id="jumpBtn">⬆️ JUMP</button>
-                    <button class="control-btn" id="rightBtn">➡️ RIGHT</button>
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 10px;">
+                    <button class="control-btn" id="leftBtn" style="min-width: 100px; min-height: 60px; font-size: 1.4rem; touch-action: none;">⬅️ LEFT</button>
+                    <button class="control-btn" id="jumpBtn" style="min-width: 100px; min-height: 60px; font-size: 1.4rem; touch-action: none;">⬆️ JUMP</button>
+                    <button class="control-btn" id="rightBtn" style="min-width: 100px; min-height: 60px; font-size: 1.4rem; touch-action: none;">➡️ RIGHT</button>
                 </div>
             `;
             
             let leftPressed = false;
             let rightPressed = false;
             
-            document.getElementById('leftBtn').addEventListener('touchstart', (e) => {
+            // Helper to add visual feedback
+            function setButtonPressed(btn, pressed) {
+                if (pressed) {
+                    btn.style.transform = 'scale(0.95)';
+                    btn.style.opacity = '0.8';
+                    btn.style.borderStyle = 'inset';
+                } else {
+                    btn.style.transform = 'scale(1)';
+                    btn.style.opacity = '1';
+                    btn.style.borderStyle = 'outset';
+                }
+            }
+            
+            // LEFT button
+            const leftBtn = document.getElementById('leftBtn');
+            leftBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 leftPressed = true;
+                setButtonPressed(leftBtn, true);
             });
-            document.getElementById('leftBtn').addEventListener('touchend', (e) => {
+            leftBtn.addEventListener('touchend', (e) => {
                 e.preventDefault();
                 leftPressed = false;
+                setButtonPressed(leftBtn, false);
             });
-            document.getElementById('leftBtn').addEventListener('mousedown', () => leftPressed = true);
-            document.getElementById('leftBtn').addEventListener('mouseup', () => leftPressed = false);
+            leftBtn.addEventListener('touchcancel', (e) => {
+                leftPressed = false;
+                setButtonPressed(leftBtn, false);
+            });
+            leftBtn.addEventListener('mousedown', () => {
+                leftPressed = true;
+                setButtonPressed(leftBtn, true);
+            });
+            leftBtn.addEventListener('mouseup', () => {
+                leftPressed = false;
+                setButtonPressed(leftBtn, false);
+            });
+            leftBtn.addEventListener('mouseleave', () => {
+                leftPressed = false;
+                setButtonPressed(leftBtn, false);
+            });
             
-            document.getElementById('rightBtn').addEventListener('touchstart', (e) => {
+            // RIGHT button
+            const rightBtn = document.getElementById('rightBtn');
+            rightBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 rightPressed = true;
+                setButtonPressed(rightBtn, true);
             });
-            document.getElementById('rightBtn').addEventListener('touchend', (e) => {
+            rightBtn.addEventListener('touchend', (e) => {
                 e.preventDefault();
                 rightPressed = false;
+                setButtonPressed(rightBtn, false);
             });
-            document.getElementById('rightBtn').addEventListener('mousedown', () => rightPressed = true);
-            document.getElementById('rightBtn').addEventListener('mouseup', () => rightPressed = false);
+            rightBtn.addEventListener('touchcancel', (e) => {
+                rightPressed = false;
+                setButtonPressed(rightBtn, false);
+            });
+            rightBtn.addEventListener('mousedown', () => {
+                rightPressed = true;
+                setButtonPressed(rightBtn, true);
+            });
+            rightBtn.addEventListener('mouseup', () => {
+                rightPressed = false;
+                setButtonPressed(rightBtn, false);
+            });
+            rightBtn.addEventListener('mouseleave', () => {
+                rightPressed = false;
+                setButtonPressed(rightBtn, false);
+            });
             
-            document.getElementById('jumpBtn').addEventListener('touchstart', (e) => {
+            // JUMP button
+            const jumpBtn = document.getElementById('jumpBtn');
+            jumpBtn.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 if (player.onGround) {
                     player.velocityY = player.jumpPower;
                     player.onGround = false;
                 }
+                setButtonPressed(jumpBtn, true);
             });
-            document.getElementById('jumpBtn').addEventListener('click', (e) => {
+            jumpBtn.addEventListener('touchend', (e) => {
                 e.preventDefault();
+                setButtonPressed(jumpBtn, false);
+            });
+            jumpBtn.addEventListener('touchcancel', (e) => {
+                setButtonPressed(jumpBtn, false);
+            });
+            jumpBtn.addEventListener('mousedown', () => {
                 if (player.onGround) {
                     player.velocityY = player.jumpPower;
                     player.onGround = false;
                 }
+                setButtonPressed(jumpBtn, true);
+            });
+            jumpBtn.addEventListener('mouseup', () => {
+                setButtonPressed(jumpBtn, false);
+            });
+            jumpBtn.addEventListener('mouseleave', () => {
+                setButtonPressed(jumpBtn, false);
             });
             
             // Game loop
