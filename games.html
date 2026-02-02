@@ -392,6 +392,13 @@
                 <p><b>Difficulty:</b> ⭐⭐⭐⭐</p>
                 <button class="play-btn">PLAY NOW!</button>
             </div>
+
+            <div class="game-card" onclick="openGame('blobjump')">
+                <h3>🏃 BLOB JUMP</h3>
+                <p>Jump across platforms and collect gems!</p>
+                <p><b>Difficulty:</b> ⭐⭐⭐</p>
+                <button class="play-btn">PLAY NOW!</button>
+            </div>
         </div>
 
         <div class="footer">
@@ -492,6 +499,9 @@
                     break;
                 case 'breakout':
                     startBreakoutGame();
+                    break;
+                case 'blobjump':
+                    startBlobJumpGame();
                     break;
             }
         }
@@ -1626,6 +1636,394 @@
             
             scoreDisplay.textContent = `SCORE: 0 | LIVES: 3 | LVL: 1`;
             draw();
+        }
+
+        // BLOB JUMP PLATFORMER GAME
+        function startBlobJumpGame() {
+            document.getElementById('gameTitle').textContent = '🏃 BLOB JUMP';
+            const gameArea = document.getElementById('gameArea');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            const controls = document.getElementById('gameControls');
+            
+            // Responsive canvas size
+            const isMobile = window.innerWidth < 600;
+            const canvasWidth = isMobile ? Math.min(400, window.innerWidth - 40) : 600;
+            const canvasHeight = isMobile ? 350 : 450;
+            
+            gameArea.innerHTML = `<canvas id="jumpCanvas" width="${canvasWidth}" height="${canvasHeight}"></canvas>`;
+            const canvas = document.getElementById('jumpCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            let score = 0;
+            let gameOver = false;
+            let scrollOffset = 0;
+            
+            // Player
+            const player = {
+                x: 50,
+                y: canvasHeight - 100,
+                width: 30,
+                height: 30,
+                velocityY: 0,
+                velocityX: 0,
+                gravity: 0.5,
+                jumpPower: -12,
+                speed: 5,
+                onGround: false,
+                emoji: '🩷'
+            };
+            
+            // Platforms
+            const platforms = [];
+            const platformWidth = 100;
+            const platformHeight = 15;
+            
+            // Generate initial platforms
+            function generatePlatforms() {
+                // Starting platform
+                platforms.push({
+                    x: 0,
+                    y: canvasHeight - 50,
+                    width: 150,
+                    height: platformHeight,
+                    color: '#2ecc71'
+                });
+                
+                // Generate platforms ahead
+                let lastX = 150;
+                let lastY = canvasHeight - 50;
+                
+                for (let i = 0; i < 15; i++) {
+                    const gapX = 80 + Math.random() * 100;
+                    const gapY = -50 + Math.random() * 100 - 50;
+                    lastX += gapX;
+                    lastY = Math.max(100, Math.min(canvasHeight - 100, lastY + gapY));
+                    
+                    platforms.push({
+                        x: lastX,
+                        y: lastY,
+                        width: platformWidth + Math.random() * 50,
+                        height: platformHeight,
+                        color: ['#3498db', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c'][Math.floor(Math.random() * 5)]
+                    });
+                }
+            }
+            
+            generatePlatforms();
+            
+            // Gems (collectibles)
+            const gems = [];
+            
+            function generateGems() {
+                platforms.forEach((platform, index) => {
+                    if (index > 0 && Math.random() < 0.6) {
+                        gems.push({
+                            x: platform.x + platform.width / 2 - 10,
+                            y: platform.y - 40,
+                            width: 20,
+                            height: 20,
+                            collected: false,
+                            emoji: ['💎', '⭐', '✨', '🌟'][Math.floor(Math.random() * 4)]
+                        });
+                    }
+                });
+            }
+            
+            generateGems();
+            
+            // Obstacles
+            const obstacles = [];
+            
+            function generateObstacles() {
+                platforms.forEach((platform, index) => {
+                    if (index > 2 && Math.random() < 0.3) {
+                        obstacles.push({
+                            x: platform.x + 20 + Math.random() * (platform.width - 60),
+                            y: platform.y - 30,
+                            width: 25,
+                            height: 30,
+                            emoji: ['🌵', '🔥', '⚡'][Math.floor(Math.random() * 3)]
+                        });
+                    }
+                });
+            }
+            
+            generateObstacles();
+            
+            // Controls
+            const keys = {};
+            
+            document.addEventListener('keydown', (e) => {
+                keys[e.key] = true;
+                if (e.key === ' ' || e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (player.onGround) {
+                        player.velocityY = player.jumpPower;
+                        player.onGround = false;
+                    }
+                }
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                keys[e.key] = false;
+            });
+            
+            // Touch controls
+            controls.innerHTML = `
+                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <button class="control-btn" id="leftBtn">⬅️ LEFT</button>
+                    <button class="control-btn" id="jumpBtn">⬆️ JUMP</button>
+                    <button class="control-btn" id="rightBtn">➡️ RIGHT</button>
+                </div>
+            `;
+            
+            let leftPressed = false;
+            let rightPressed = false;
+            
+            document.getElementById('leftBtn').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                leftPressed = true;
+            });
+            document.getElementById('leftBtn').addEventListener('touchend', (e) => {
+                e.preventDefault();
+                leftPressed = false;
+            });
+            document.getElementById('leftBtn').addEventListener('mousedown', () => leftPressed = true);
+            document.getElementById('leftBtn').addEventListener('mouseup', () => leftPressed = false);
+            
+            document.getElementById('rightBtn').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                rightPressed = true;
+            });
+            document.getElementById('rightBtn').addEventListener('touchend', (e) => {
+                e.preventDefault();
+                rightPressed = false;
+            });
+            document.getElementById('rightBtn').addEventListener('mousedown', () => rightPressed = true);
+            document.getElementById('rightBtn').addEventListener('mouseup', () => rightPressed = false);
+            
+            document.getElementById('jumpBtn').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (player.onGround) {
+                    player.velocityY = player.jumpPower;
+                    player.onGround = false;
+                }
+            });
+            document.getElementById('jumpBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                if (player.onGround) {
+                    player.velocityY = player.jumpPower;
+                    player.onGround = false;
+                }
+            });
+            
+            // Game loop
+            function gameLoop() {
+                if (gameOver) return;
+                
+                // Clear canvas with sky gradient
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
+                gradient.addColorStop(0, '#87ceeb');
+                gradient.addColorStop(1, '#e0f6ff');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+                
+                // Draw clouds (parallax background)
+                ctx.font = '40px Arial';
+                for (let i = 0; i < 5; i++) {
+                    const cloudX = (i * 200 - scrollOffset * 0.3) % (canvasWidth + 100) - 50;
+                    ctx.fillText('☁️', cloudX, 50 + i * 30);
+                }
+                
+                // Handle input
+                if (keys['ArrowLeft'] || leftPressed) {
+                    player.velocityX = -player.speed;
+                } else if (keys['ArrowRight'] || rightPressed) {
+                    player.velocityX = player.speed;
+                } else {
+                    player.velocityX *= 0.8; // Friction
+                }
+                
+                // Apply gravity
+                player.velocityY += player.gravity;
+                
+                // Update player position
+                player.x += player.velocityX;
+                player.y += player.velocityY;
+                
+                // Keep player in bounds horizontally
+                if (player.x < 0) player.x = 0;
+                if (player.x > canvasWidth - player.width) player.x = canvasWidth - player.width;
+                
+                // Camera scroll (follow player if they move right)
+                if (player.x > canvasWidth / 2) {
+                    scrollOffset += player.velocityX;
+                    player.x = canvasWidth / 2;
+                }
+                
+                // Check platform collisions
+                player.onGround = false;
+                
+                platforms.forEach(platform => {
+                    const platformScreenX = platform.x - scrollOffset;
+                    
+                    // Only check visible platforms
+                    if (platformScreenX + platform.width > 0 && platformScreenX < canvasWidth) {
+                        // Check collision
+                        if (player.velocityY >= 0 &&
+                            player.y + player.height >= platform.y &&
+                            player.y + player.height <= platform.y + platform.height + 10 &&
+                            player.x + player.width > platformScreenX &&
+                            player.x < platformScreenX + platform.width) {
+                            player.y = platform.y - player.height;
+                            player.velocityY = 0;
+                            player.onGround = true;
+                        }
+                    }
+                });
+                
+                // Check gem collection
+                gems.forEach(gem => {
+                    if (!gem.collected) {
+                        const gemScreenX = gem.x - scrollOffset;
+                        
+                        if (player.x + player.width > gemScreenX &&
+                            player.x < gemScreenX + gem.width &&
+                            player.y + player.height > gem.y &&
+                            player.y < gem.y + gem.height) {
+                            gem.collected = true;
+                            score += 50;
+                            scoreDisplay.textContent = `SCORE: ${score} | DISTANCE: ${Math.floor(scrollOffset / 10)}m`;
+                        }
+                    }
+                });
+                
+                // Check obstacle collision
+                obstacles.forEach(obstacle => {
+                    const obstacleScreenX = obstacle.x - scrollOffset;
+                    
+                    if (player.x + player.width > obstacleScreenX &&
+                        player.x < obstacleScreenX + obstacle.width &&
+                        player.y + player.height > obstacle.y &&
+                        player.y < obstacle.y + obstacle.height) {
+                        gameOver = true;
+                        endGame();
+                    }
+                });
+                
+                // Check if player fell off
+                if (player.y > canvasHeight) {
+                    gameOver = true;
+                    endGame();
+                }
+                
+                // Generate more platforms as player progresses
+                if (scrollOffset > platforms[platforms.length - 1].x - canvasWidth * 2) {
+                    const lastPlatform = platforms[platforms.length - 1];
+                    const gapX = 80 + Math.random() * 100;
+                    const gapY = -50 + Math.random() * 100 - 50;
+                    const newY = Math.max(100, Math.min(canvasHeight - 100, lastPlatform.y + gapY));
+                    
+                    const newPlatform = {
+                        x: lastPlatform.x + gapX,
+                        y: newY,
+                        width: platformWidth + Math.random() * 50,
+                        height: platformHeight,
+                        color: ['#3498db', '#e74c3c', '#f39c12', '#9b59b6', '#1abc9c'][Math.floor(Math.random() * 5)]
+                    };
+                    
+                    platforms.push(newPlatform);
+                    
+                    // Add gem
+                    if (Math.random() < 0.6) {
+                        gems.push({
+                            x: newPlatform.x + newPlatform.width / 2 - 10,
+                            y: newPlatform.y - 40,
+                            width: 20,
+                            height: 20,
+                            collected: false,
+                            emoji: ['💎', '⭐', '✨', '🌟'][Math.floor(Math.random() * 4)]
+                        });
+                    }
+                    
+                    // Add obstacle
+                    if (Math.random() < 0.3) {
+                        obstacles.push({
+                            x: newPlatform.x + 20 + Math.random() * (newPlatform.width - 60),
+                            y: newPlatform.y - 30,
+                            width: 25,
+                            height: 30,
+                            emoji: ['🌵', '🔥', '⚡'][Math.floor(Math.random() * 3)]
+                        });
+                    }
+                }
+                
+                // Draw platforms
+                platforms.forEach(platform => {
+                    const platformScreenX = platform.x - scrollOffset;
+                    
+                    if (platformScreenX + platform.width > 0 && platformScreenX < canvasWidth) {
+                        ctx.fillStyle = platform.color;
+                        ctx.fillRect(platformScreenX, platform.y, platform.width, platform.height);
+                        ctx.strokeStyle = '#000';
+                        ctx.lineWidth = 3;
+                        ctx.strokeRect(platformScreenX, platform.y, platform.width, platform.height);
+                        
+                        // Add retro pattern
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                        for (let i = 0; i < platform.width; i += 10) {
+                            ctx.fillRect(platformScreenX + i, platform.y + 2, 5, 5);
+                        }
+                    }
+                });
+                
+                // Draw gems
+                ctx.font = '20px Arial';
+                gems.forEach(gem => {
+                    if (!gem.collected) {
+                        const gemScreenX = gem.x - scrollOffset;
+                        
+                        if (gemScreenX + gem.width > 0 && gemScreenX < canvasWidth) {
+                            ctx.fillText(gem.emoji, gemScreenX, gem.y + 18);
+                        }
+                    }
+                });
+                
+                // Draw obstacles
+                ctx.font = '25px Arial';
+                obstacles.forEach(obstacle => {
+                    const obstacleScreenX = obstacle.x - scrollOffset;
+                    
+                    if (obstacleScreenX + obstacle.width > 0 && obstacleScreenX < canvasWidth) {
+                        ctx.fillText(obstacle.emoji, obstacleScreenX, obstacle.y + 25);
+                    }
+                });
+                
+                // Draw player
+                ctx.font = '30px Arial';
+                ctx.fillText(player.emoji, player.x, player.y + 28);
+                
+                // Update score with distance
+                const distance = Math.floor(scrollOffset / 10);
+                scoreDisplay.textContent = `SCORE: ${score} | DISTANCE: ${distance}m`;
+                
+                requestAnimationFrame(gameLoop);
+            }
+            
+            function endGame() {
+                const distance = Math.floor(scrollOffset / 10);
+                const finalScore = score + distance;
+                const isNewHigh = saveHighScore('blobjump', finalScore);
+                const highScore = getHighScore('blobjump');
+                const msg = isNewHigh ? 
+                    `🏆 NEW HIGH SCORE! ${finalScore} points! 🏆\n(${score} gems + ${distance}m distance)` :
+                    `💔 GAME OVER! Score: ${finalScore}\n(${score} gems + ${distance}m)\nHigh Score: ${highScore}`;
+                alert(msg);
+                closeGame();
+            }
+            
+            scoreDisplay.textContent = 'SCORE: 0 | DISTANCE: 0m | Desktop: ← → + SPACE | Mobile: Use buttons!';
+            gameLoop();
         }
 
         // Counter animation
