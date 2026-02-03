@@ -399,6 +399,13 @@
                 <p><b>Difficulty:</b> ⭐⭐⭐</p>
                 <button class="play-btn">PLAY NOW!</button>
             </div>
+
+            <div class="game-card" onclick="openGame('blobbeats')">
+                <h3>🎵 BLOB BEATS</h3>
+                <p>Tap the notes in time with the music!</p>
+                <p><b>Difficulty:</b> ⭐⭐⭐⭐</p>
+                <button class="play-btn">PLAY NOW!</button>
+            </div>
         </div>
 
         <div class="footer">
@@ -502,6 +509,9 @@
                     break;
                 case 'blobjump':
                     startBlobJumpGame();
+                    break;
+                case 'blobbeats':
+                    startBlobBeatsGame();
                     break;
             }
         }
@@ -2095,11 +2105,730 @@
             gameLoop();
         }
 
+        // BLOB BEATS GAME
+        function startBlobBeatsGame() {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const scoreDisplay = document.getElementById('status');
+            
+            canvas.width = 800;
+            canvas.height = 500;
+            
+            // Game state
+            let score = 0;
+            let combo = 0;
+            let lives = 3;
+            let gameActive = true;
+            let notes = [];
+            let lastNoteTime = 0;
+            const noteSpeed = 3;
+            const hitZoneX = 150;
+            const targetY = 400;
+            
+            // Track positions (4 lanes)
+            const lanes = [200, 300, 400, 500];
+            
+            // Input state
+            let keyState = { '1': false, '2': false, '3': false, '4': false };
+            
+            // Visual effects
+            let hitEffects = [];
+            let missedEffects = [];
+            
+            function spawnNote() {
+                const lane = Math.floor(Math.random() * 4);
+                notes.push({
+                    x: lanes[lane],
+                    y: -50,
+                    lane: lane,
+                    hit: false,
+                    missed: false
+                });
+            }
+            
+            function drawGame() {
+                // Background with retro grid
+                ctx.fillStyle = '#1a1a2e';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw lanes
+                ctx.strokeStyle = '#16213e';
+                ctx.lineWidth = 3;
+                for (let i = 0; i < 5; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(150 + i * 100, 0);
+                    ctx.lineTo(150 + i * 100, canvas.height);
+                    ctx.stroke();
+                }
+                
+                // Draw hit zone
+                ctx.fillStyle = 'rgba(0, 255, 255, 0.1)';
+                ctx.fillRect(100, targetY - 40, 450, 80);
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(100, targetY - 40, 450, 80);
+                
+                // Draw target circles in each lane
+                const colors = ['#ff0055', '#00ff55', '#5500ff', '#ffff00'];
+                for (let i = 0; i < 4; i++) {
+                    ctx.beginPath();
+                    ctx.arc(200 + i * 100, targetY, 35, 0, Math.PI * 2);
+                    ctx.strokeStyle = colors[i];
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                    
+                    // Fill if key pressed
+                    if (keyState[(i + 1).toString()]) {
+                        ctx.fillStyle = colors[i] + '66';
+                        ctx.fill();
+                    }
+                }
+                
+                // Draw notes (falling circles)
+                for (let note of notes) {
+                    if (!note.hit && !note.missed) {
+                        const colors = ['#ff0055', '#00ff55', '#5500ff', '#ffff00'];
+                        
+                        // Glow effect
+                        ctx.shadowBlur = 20;
+                        ctx.shadowColor = colors[note.lane];
+                        
+                        ctx.beginPath();
+                        ctx.arc(note.x, note.y, 25, 0, Math.PI * 2);
+                        ctx.fillStyle = colors[note.lane];
+                        ctx.fill();
+                        
+                        // Inner highlight
+                        ctx.beginPath();
+                        ctx.arc(note.x - 5, note.y - 5, 10, 0, Math.PI * 2);
+                        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                        ctx.fill();
+                        
+                        ctx.shadowBlur = 0;
+                    }
+                }
+                
+                // Draw hit effects
+                for (let effect of hitEffects) {
+                    ctx.beginPath();
+                    ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(0, 255, 0, ${effect.alpha})`;
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+                
+                // Draw missed effects
+                for (let effect of missedEffects) {
+                    ctx.beginPath();
+                    ctx.arc(effect.x, effect.y, effect.radius, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(255, 0, 0, ${effect.alpha})`;
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+                
+                // Draw UI
+                ctx.font = 'bold 24px Arial';
+                ctx.fillStyle = '#fff';
+                ctx.textAlign = 'left';
+                ctx.fillText(`SCORE: ${score}`, 20, 40);
+                
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#ffeb3b';
+                ctx.font = 'bold 20px Arial';
+                if (combo > 1) {
+                    ctx.fillText(`🔥 COMBO x${combo}! 🔥`, 400, 40);
+                }
+                
+                // Draw lives
+                ctx.textAlign = 'right';
+                for (let i = 0; i < lives; i++) {
+                    ctx.font = '30px Arial';
+                    ctx.fillText('❤️', 750 - i * 40, 40);
+                }
+                
+                // Draw lane numbers/tips
+                ctx.textAlign = 'center';
+                ctx.font = 'bold 16px Arial';
+                ctx.fillStyle = '#888';
+                for (let i = 0; i < 4; i++) {
+                    ctx.fillText(`[${i + 1}]`, 200 + i * 100, targetY + 60);
+                }
+            }
+            
+            function updateGame() {
+                if (!gameActive) return;
+                
+                // Spawn notes
+                const now = Date.now();
+                if (now - lastNoteTime > 800) {
+                    spawnNote();
+                    lastNoteTime = now;
+                }
+                
+                // Update notes
+                for (let note of notes) {
+                    if (!note.hit && !note.missed) {
+                        note.y += noteSpeed;
+                        
+                        // Check if missed (went past hit zone)
+                        if (note.y > targetY + 50) {
+                            note.missed = true;
+                            combo = 0;
+                            lives--;
+                            missedEffects.push({
+                                x: note.x,
+                                y: targetY,
+                                radius: 10,
+                                alpha: 1
+                            });
+                            
+                            if (lives <= 0) {
+                                endGame();
+                            }
+                        }
+                    }
+                }
+                
+                // Update effects
+                hitEffects = hitEffects.filter(e => {
+                    e.radius += 3;
+                    e.alpha -= 0.1;
+                    return e.alpha > 0;
+                });
+                
+                missedEffects = missedEffects.filter(e => {
+                    e.radius += 3;
+                    e.alpha -= 0.1;
+                    return e.alpha > 0;
+                });
+                
+                // Remove old notes
+                notes = notes.filter(n => n.y < canvas.height + 50);
+                
+                drawGame();
+                
+                if (gameActive) {
+                    requestAnimationFrame(updateGame);
+                }
+            }
+            
+            function hitNote(lane) {
+                // Find closest note in this lane that's in the hit zone
+                let closestNote = null;
+                let minDist = Infinity;
+                
+                for (let note of notes) {
+                    if (!note.hit && !note.missed && note.lane === lane) {
+                        const dist = Math.abs(note.y - targetY);
+                        if (dist < minDist && dist < 60) {
+                            minDist = dist;
+                            closestNote = note;
+                        }
+                    }
+                }
+                
+                if (closestNote) {
+                    closestNote.hit = true;
+                    
+                    // Score based on accuracy
+                    let points = 0;
+                    if (minDist < 15) {
+                        points = 100; // Perfect!
+                    } else if (minDist < 30) {
+                        points = 75; // Great
+                    } else {
+                        points = 50; // Good
+                    }
+                    
+                    score += points * (1 + combo * 0.1);
+                    combo++;
+                    
+                    // Visual feedback
+                    hitEffects.push({
+                        x: closestNote.x,
+                        y: targetY,
+                        radius: 10,
+                        alpha: 1
+                    });
+                } else {
+                    // Missed click - small penalty
+                    combo = 0;
+                }
+            }
+            
+            function endGame() {
+                gameActive = false;
+                const isNewHigh = saveHighScore('blobbeats', Math.floor(score));
+                const highScore = getHighScore('blobbeats');
+                const msg = isNewHigh ? 
+                    `🎵 NEW HIGH SCORE! ${Math.floor(score)} points! 🎵\nMax combo: ${combo}` :
+                    `💔 GAME OVER! Score: ${Math.floor(score)}\nMax combo: ${combo}\nHigh Score: ${highScore}`;
+                alert(msg);
+                closeGame();
+            }
+            
+            // Event listeners
+            document.addEventListener('keydown', (e) => {
+                if (!gameActive) return;
+                
+                if (e.key === '1' || e.key === 'q') {
+                    keyState['1'] = true;
+                    hitNote(0);
+                } else if (e.key === '2' || e.key === 'w') {
+                    keyState['2'] = true;
+                    hitNote(1);
+                } else if (e.key === '3' || e.key === 'e') {
+                    keyState['3'] = true;
+                    hitNote(2);
+                } else if (e.key === '4' || e.key === 'r') {
+                    keyState['4'] = true;
+                    hitNote(3);
+                }
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                if (e.key === '1' || e.key === 'q') keyState['1'] = false;
+                else if (e.key === '2' || e.key === 'w') keyState['2'] = false;
+                else if (e.key === '3' || e.key === 'e') keyState['3'] = false;
+                else if (e.key === '4' || e.key === 'r') keyState['4'] = false;
+            });
+            
+            // Touch/click support for mobile
+            canvas.addEventListener('touchstart', handleTouch);
+            canvas.addEventListener('mousedown', handleTouch);
+            
+            function handleTouch(e) {
+                if (!gameActive) return;
+                e.preventDefault();
+                
+                const rect = canvas.getBoundingClientRect();
+                let clientX, clientY;
+                
+                if (e.type === 'touchstart') {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                
+                const x = (clientX - rect.left) * (canvas.width / rect.width);
+                const y = (clientY - rect.top) * (canvas.height / rect.height);
+                
+                // Check which lane was tapped
+                for (let i = 0; i < 4; i++) {
+                    const laneX = 200 + i * 100;
+                    if (Math.abs(x - laneX) < 50 && Math.abs(y - targetY) < 100) {
+                        keyState[(i + 1).toString()] = true;
+                        hitNote(i);
+                        
+                        // Reset key state after short delay
+                        setTimeout(() => {
+                            keyState[(i + 1).toString()] = false;
+                        }, 100);
+                        break;
+                    }
+                }
+            }
+            
+            // Mobile control buttons
+            scoreDisplay.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>🎵 BLOB BEATS - Tap notes in time!</span>
+                    <div style="display: none;" id="mobileControls">
+                        <button style="width: 60px; height: 60px; font-size: 24px; border-radius: 50%; background: #ff0055; color: white; border: 3px outset #808080;" 
+                                onmousedown="keyState['1']=true; hitNote(0); setTimeout(()=>keyState['1']=false,100)" 
+                                ontouchstart="keyState['1']=true; hitNote(0); setTimeout(()=>keyState['1']=false,100)">1</button>
+                        <button style="width: 60px; height: 60px; font-size: 24px; border-radius: 50%; background: #00ff55; color: black; border: 3px outset #808080; margin-left: 10px;" 
+                                onmousedown="keyState['2']=true; hitNote(1); setTimeout(()=>keyState['2']=false,100)"
+                                ontouchstart="keyState['2']=true; hitNote(1); setTimeout(()=>keyState['2']=false,100)">2</button>
+                        <button style="width: 60px; height: 60px; font-size: 24px; border-radius: 50%; background: #5500ff; color: white; border: 3px outset #808080; margin-left: 10px;" 
+                                onmousedown="keyState['3']=true; hitNote(2); setTimeout(()=>keyState['3']=false,100)"
+                                ontouchstart="keyState['3']=true; hitNote(2); setTimeout(()=>keyState['3']=false,100)">3</button>
+                        <button style="width: 60px; height: 60px; font-size: 24px; border-radius: 50%; background: #ffff00; color: black; border: 3px outset #808080; margin-left: 10px;" 
+                                onmousedown="keyState['4']=true; hitNote(3); setTimeout(()=>keyState['4']=false,100)"
+                                ontouchstart="keyState['4']=true; hitNote(3); setTimeout(()=>keyState['4']=false,100)">4</button>
+                    </div>
+                </div>
+            `;
+            
+            // Show mobile controls on small screens
+            if (window.innerWidth < 800 || 'ontouchstart' in window) {
+                document.getElementById('mobileControls').style.display = 'flex';
+            }
+            
+            scoreDisplay.innerHTML += '<br><small>Desktop: 1/Q, 2/W, 3/E, 4/R or click lanes | Mobile: Tap the circles!</small>';
+            
+            // Start game
+            lastNoteTime = Date.now();
+            updateGame();
+        }
+
         // Counter animation
         setInterval(() => {
             const counter = document.getElementById('counterDisplay');
             counter.textContent = String(Math.floor(Math.random() * 999999) + 1).padStart(6, '0');
         }, 5000);
+
+        // BLOB BEATS GAME
+        function startBlobBeatsGame() {
+            const modal = document.getElementById('gameModal');
+            const gameArea = document.getElementById('gameArea');
+            const status = document.getElementById('status');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            
+            modal.style.display = 'block';
+            gameArea.innerHTML = `
+                <div id="blobBeatsContainer" style="
+                    width: 100%;
+                    height: 400px;
+                    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+                    position: relative;
+                    overflow: hidden;
+                    border: 4px solid #e94560;
+                    cursor: pointer;
+                ">
+                    <canvas id="blobBeatsCanvas" width="800" height="400" style="
+                        display: block;
+                        margin: 0 auto;
+                        background: transparent;
+                    "></canvas>
+                    
+                    <!-- Touch Controls -->
+                    <div id="touchControls" style="
+                        display: none;
+                        position: absolute;
+                        bottom: 10px;
+                        left: 0;
+                        right: 0;
+                        text-align: center;
+                    ">
+                        <button id="beatBtn" style="
+                            background: linear-gradient(45deg, #e94560, #ff6b6b);
+                            border: 4px solid #fff;
+                            border-radius: 50%;
+                            width: 80px;
+                            height: 80px;
+                            font-size: 24px;
+                            color: white;
+                            cursor: pointer;
+                            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.5);
+                            animation: pulse 1s infinite alternate;
+                        ">🎵</button>
+                    </div>
+                </div>
+                
+                <div id="beatScoreDisplay" style="
+                    background: #000;
+                    color: #0f0;
+                    font-family: 'Courier New', monospace;
+                    padding: 15px;
+                    text-align: center;
+                    font-size: 20px;
+                    border: 3px inset #808080;
+                    margin-top: 10px;
+                ">
+                    SCORE: 0 | COMBO: 0x | Desktop: SPACEBAR or TAP | Mobile: Use button!
+                </div>
+                
+                <style>
+                    @keyframes pulse {
+                        from { transform: scale(1); }
+                        to { transform: scale(1.1); }
+                    }
+                    @keyframes hitEffect {
+                        0% { transform: scale(1); opacity: 1; }
+                        100% { transform: scale(2); opacity: 0; }
+                    }
+                </style>
+            `;
+            
+            const canvas = document.getElementById('blobBeatsCanvas');
+            const ctx = canvas.getContext('2d');
+            const container = document.getElementById('blobBeatsContainer');
+            const beatScoreDisplay = document.getElementById('beatScoreDisplay');
+            const touchControls = document.getElementById('touchControls');
+            
+            // Responsive canvas
+            function resizeCanvas() {
+                const containerWidth = container.clientWidth;
+                if (containerWidth < 800) {
+                    canvas.width = containerWidth;
+                    canvas.height = 400;
+                } else {
+                    canvas.width = 800;
+                    canvas.height = 400;
+                }
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Show touch controls on mobile
+            if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+                touchControls.style.display = 'block';
+            }
+            
+            // Game state
+            let score = 0;
+            let combo = 0;
+            let maxCombo = 0;
+            let gameActive = true;
+            let notes = [];
+            let particles = [];
+            let lastNoteTime = 0;
+            const noteSpeed = 3;
+            const targetX = 100;
+            const hitWindow = 50;
+            
+            // Lanes (4 different colors)
+            const lanes = [
+                { color: '#e94560', y: 100, noteColor: '🔴' },  // Red
+                { color: '#4ecdc4', y: 200, noteColor: '🔵' },  // Cyan
+                { color: '#ffe66d', y: 300, noteColor: '🟡' },  // Yellow
+                { color: '#95e1d3', y: 400, noteColor: '🟢' }   // Green
+            ];
+            
+            // Audio context for retro sounds
+            let audioCtx = null;
+            
+            function initAudio() {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+            
+            function playSound(freq, duration = 0.1) {
+                if (!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.frequency.value = freq;
+                osc.type = 'square';
+                gain.gain.value = 0.1;
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.stop(audioCtx.currentTime + duration);
+            }
+            
+            function playHitSound() {
+                playSound(880, 0.1);
+            }
+            
+            function playMissSound() {
+                playSound(220, 0.2);
+            }
+            
+            function spawnNote() {
+                const lane = lanes[Math.floor(Math.random() * lanes.length)];
+                notes.push({
+                    lane: lane,
+                    x: canvas.width + 30,
+                    y: lane.y - 20,
+                    hit: false,
+                    missed: false
+                });
+            }
+            
+            function createParticles(x, y, color) {
+                for (let i = 0; i < 10; i++) {
+                    particles.push({
+                        x: x,
+                        y: y,
+                        vx: (Math.random() - 0.5) * 10,
+                        vy: (Math.random() - 0.5) * 10,
+                        life: 1,
+                        color: color
+                    });
+                }
+            }
+            
+            function hitNote() {
+                initAudio();
+                
+                // Find closest note to target
+                let closestNote = null;
+                let closestDist = Infinity;
+                
+                notes.forEach(note => {
+                    if (!note.hit && !note.missed) {
+                        const dist = Math.abs(note.x - targetX);
+                        if (dist < closestDist) {
+                            closestDist = dist;
+                            closestNote = note;
+                        }
+                    }
+                });
+                
+                if (closestNote && closestDist < hitWindow) {
+                    // Hit!
+                    closestNote.hit = true;
+                    combo++;
+                    if (combo > maxCombo) maxCombo = combo;
+                    
+                    // Score based on accuracy
+                    let points = 100;
+                    if (closestDist < 15) {
+                        points = 300; // Perfect
+                    } else if (closestDist < 30) {
+                        points = 200; // Great
+                    }
+                    
+                    score += points * combo;
+                    playHitSound();
+                    createParticles(targetX, closestNote.lane.y, closestNote.lane.color);
+                    
+                    beatScoreDisplay.innerHTML = `SCORE: ${score} | COMBO: ${combo}x | PERFECT! 🎵`;
+                } else {
+                    // Miss
+                    combo = 0;
+                    playMissSound();
+                    beatScoreDisplay.innerHTML = `SCORE: ${score} | COMBO: ${combo}x | MISS! 💔`;
+                }
+            }
+            
+            // Input handlers
+            function handleInput(e) {
+                e.preventDefault();
+                if (gameActive) {
+                    hitNote();
+                }
+            }
+            
+            canvas.addEventListener('click', handleInput);
+            canvas.addEventListener('touchstart', handleInput);
+            
+            const beatBtn = document.getElementById('beatBtn');
+            if (beatBtn) {
+                beatBtn.addEventListener('click', handleInput);
+                beatBtn.addEventListener('touchstart', handleInput);
+            }
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space' && gameActive) {
+                    e.preventDefault();
+                    hitNote();
+                }
+            });
+            
+            // Game loop
+            let lastTime = 0;
+            const spawnInterval = 800; // ms between notes
+            
+            function gameLoop(timestamp) {
+                if (!gameActive) return;
+                
+                const deltaTime = timestamp - lastTime;
+                lastTime = timestamp;
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw lanes
+                lanes.forEach((lane, i) => {
+                    ctx.fillStyle = lane.color + '40';
+                    ctx.fillRect(0, lane.y - 30, canvas.width, 60);
+                    
+                    // Draw lane divider
+                    ctx.strokeStyle = lane.color;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(0, lane.y + 30);
+                    ctx.lineTo(canvas.width, lane.y + 30);
+                    ctx.stroke();
+                });
+                
+                // Draw target zone
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.fillRect(targetX - hitWindow/2, 50, hitWindow, 400);
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(targetX - hitWindow/2, 50, hitWindow, 400);
+                
+                // Draw target indicator
+                ctx.font = '30px Arial';
+                lanes.forEach(lane => {
+                    ctx.fillText('🎯', targetX - 15, lane.y + 10);
+                });
+                
+                // Spawn new notes
+                if (timestamp - lastNoteTime > spawnInterval) {
+                    spawnNote();
+                    lastNoteTime = timestamp;
+                }
+                
+                // Update and draw notes
+                ctx.font = '30px Arial';
+                notes.forEach((note, i) => {
+                    if (!note.hit && !note.missed) {
+                        note.x -= noteSpeed;
+                        
+                        // Check if missed
+                        if (note.x < targetX - hitWindow) {
+                            note.missed = true;
+                            combo = 0;
+                            playMissSound();
+                            beatScoreDisplay.innerHTML = `SCORE: ${score} | COMBO: ${combo}x | MISS! 💔`;
+                        }
+                        
+                        // Draw note
+                        if (note.x > -30 && note.x < canvas.width + 30) {
+                            ctx.fillText(note.lane.noteColor, note.x - 15, note.y + 20);
+                        }
+                    }
+                });
+                
+                // Remove off-screen or hit notes
+                notes = notes.filter(note => note.x > -50 && !note.hit);
+                
+                // Update and draw particles
+                particles.forEach(particle => {
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    particle.life -= 0.05;
+                    
+                    ctx.globalAlpha = particle.life;
+                    ctx.fillStyle = particle.color;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                ctx.globalAlpha = 1;
+                
+                particles = particles.filter(p => p.life > 0);
+                
+                // Update score display
+                beatScoreDisplay.innerHTML = `SCORE: ${score} | COMBO: ${combo}x | Desktop: SPACEBAR or TAP | Mobile: Use button!`;
+                
+                // Check game over (after 60 seconds)
+                if (score > 10000 || (timestamp > 60000 && gameActive)) {
+                    endGame();
+                    return;
+                }
+                
+                requestAnimationFrame(gameLoop);
+            }
+            
+            function endGame() {
+                gameActive = false;
+                const isNewHigh = saveHighScore('blobbeats', score);
+                const highScore = getHighScore('blobbeats');
+                const msg = isNewHigh ? 
+                    `🎵 BLOB BEATS MASTER! 🏆\nScore: ${score} | Max Combo: ${maxCombo}x\nNEW HIGH SCORE!` :
+                    `💔 GAME OVER!\nScore: ${score} | Max Combo: ${maxCombo}x\nHigh Score: ${highScore}`;
+                alert(msg);
+                closeGame();
+            }
+            
+            score = 0;
+            combo = 0;
+            notes = [];
+            particles = [];
+            lastNoteTime = performance.now();
+            gameActive = true;
+            
+            requestAnimationFrame(gameLoop);
+        }
     </script>
 </body>
 </html>
