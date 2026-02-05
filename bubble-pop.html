@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Blobby's Bubble Pop Adventure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            overflow: hidden;
+            font-family: 'Comic Sans MS', 'Chalkboard', cursive, sans-serif;
+            background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 50%, #98D8C8 100%);
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #score {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #FF6B9D;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 3px solid #FFB6C1;
+        }
+
+        #level {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #6B5BFF;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 3px solid #B8B0FF;
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+
+        #overlay.hidden {
+            display: none;
+        }
+
+        .menu-box {
+            background: linear-gradient(145deg, #FFE5EC, #FFF5F8);
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            border: 4px solid #FFB6C1;
+            max-width: 90%;
+            width: 350px;
+        }
+
+        .menu-box h1 {
+            color: #FF6B9D;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0 #FFB6C1;
+        }
+
+        .menu-box h2 {
+            color: #6B5BFF;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        .menu-box p {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        .final-score {
+            font-size: 48px;
+            color: #FF6B9D;
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 3px 3px 0 #FFB6C1;
+        }
+
+        .btn {
+            background: linear-gradient(145deg, #FF8EC4, #FF6B9D);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(255, 107, 157, 0.4);
+            transition: all 0.2s ease;
+            font-family: inherit;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 157, 0.5);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .instructions {
+            background: rgba(107, 91, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .instructions p {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .emoji {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="ui">
+        <div id="score">Score: 0</div>
+        <div id="level">Level 1</div>
+    </div>
+    
+    <div id="overlay">
+        <div class="menu-box" id="startMenu">
+            <h1>🫧 Blobby's Bubble Pop 🫧</h1>
+            <h2>Adventure!</h2>
+            <div class="instructions">
+                <p><span class="emoji">👆</span> Tap to pop bubbles!</p>
+                <p><span class="emoji">⭐</span> +10 points per bubble</p>
+                <p><span class="emoji">🔺</span> Avoid the spikes!</p>
+            </div>
+            <button class="btn" id="startBtn">Play!</button>
+        </div>
+        <div class="menu-box" id="gameOverMenu" style="display: none;">
+            <h1>💔 Game Over!</h1>
+            <p>Blobby hit a spike!</p>
+            <div class="final-score" id="finalScore">0</div>
+            <p>Your Score</p>
+            <button class="btn" id="restartBtn">Try Again!</button>
+        </div>
+    </div>
+
+    <script>
+        // Game Configuration
+        const CONFIG = {
+            bubbleSpawnRate: 0.03,
+            spikeSpawnRate: 0.008,
+            baseBubbleSpeed: 1.5,
+            baseSpikeSpeed: 1.2,
+            popRadius: 80,
+            difficultyInterval: 30000, // 30 seconds
+            maxDifficulty: 10
+        };
+
+        // Game State
+        let canvas, ctx;
+        let gameRunning = false;
+        let score = 0;
+        let level = 1;
+        let lastTime = 0;
+        let difficultyTimer = 0;
+        let blobby, bubbles, spikes, particles, popEffects;
+
+        // Initialize Canvas
+        function initCanvas() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+        }
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        // Blobby Character
+        class Blobby {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = canvas.width / 2;
+                this.y = canvas.height / 2;
+                this.baseY = canvas.height / 2;
+                this.radius = 40;
+                this.bounceOffset = 0;
+                this.bounceSpeed = 0.05;
+                this.wobble = 0;
+                this.wobbleSpeed = 0.08;
+                this.eyeBlink = 0;
+                this.blinkTimer = 0;
+            }
+
+            update(dt) {
+                // Floating bounce animation
+                this.bounceOffset += this.bounceSpeed * dt;
+                this.y = this.baseY + Math.sin(this.bounceOffset) * 20;
+                
+                // Wobble effect
+                this.wobble += this.wobbleSpeed * dt;
+                
+                // Blinking
+                this.blinkTimer += dt;
+                if (this.blinkTimer > 3000) {
+                    this.eyeBlink = 1;
+                    setTimeout(() => this.eyeBlink = 0, 150);
+                    this.blinkTimer = 0;
+                }
+            }
+
+            draw() {
+                const wobbleX = Math.sin(this.wobble) * 3;
+                const wobbleY = Math.cos(this.wobble * 0.7) * 2;
+                
+                // Shadow
+                ctx.beginPath();
+                ctx.ellipse(this.x, this.y + this.radius + 10, this.radius * 0.7, 10, 0, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+                ctx.fill();
+
+                // Main body gradient
+                const gradient = ctx.createRadialGradient(
+                    this.x - 10 + wobbleX, this.y - 15 + wobbleY, 5,
+                    this.x + wobbleX, this.y + wobbleY, this.radius
+                );
+                gradient.addColorStop(0, '#FFB6E3');
+                gradient.addColorStop(0.5, '#FF8EC4');
+                gradient.addColorStop(1, '#FF6B9D');
+
+                // Body
+                ctx.beginPath();
+                ctx.ellipse(
+                    this.x + wobbleX, 
+                    this.y + wobbleY, 
+                    this.radius + Math.sin(this.wobble * 2) * 3, 
+                    this.radius + Math.cos(this.wobble * 2) * 3, 
+                    0, 0, Math.PI * 2
+                );
+                ctx.fillStyle = gradient;
+                ctx.fill();
+
+                // Highlight
+                ctx.beginPath();
+                ctx.ellipse(this.x - 15 + wobbleX, this.y - 15 + wobbleY, 12, 8, -0.5, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.fill();
+
+                // Eyes
+                const eyeY = this.y - 5 + wobbleY;
+                const eyeHeight = this.eyeBlink ? 2 : 12;
+                
+                // Left eye
+                ctx.beginPath();
+                ctx.ellipse(this.x - 12 + wobbleX, eyeY, 8, eyeHeight, 0, 0, Math.PI * 2);
+                ctx.fillStyle = '#333';
+                ctx.fill();
+                
+                // Right eye
+                ctx.beginPath();
+                ctx.ellipse(this.x + 12 + wobbleX, eyeY, 8, eyeHeight, 0, 0, Math.PI * 2);
+                ctx.fillStyle = '#333';
+                ctx.fill();
+
+                // Eye highlights
+                if (!this.eyeBlink) {
+                    ctx.beginPath();
+                    ctx.arc(this.x - 10 + wobbleX, eyeY - 3, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = 'white';
+                    ctx.fill();
+                    
+                    ctx.beginPath();
+                    ctx.arc(this.x + 14 + wobbleX, eyeY - 3, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = 'white';
+                    ctx.fill();
+                }
+
+                // Rosy cheeks
+                ctx.beginPath();
+                ctx.ellipse(this.x - 25 + wobbleX, this.y + 8 + wobbleY, 8, 5, 0, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 150, 180, 0.5)';
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.ellipse(this.x + 25 + wobbleX, this.y + 8 + wobbleY, 8, 5, 0, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 150, 180, 0.5)';
+                ctx.fill();
+
+                // Cute smile
+                ctx.beginPath();
+                ctx.arc(this.x + wobbleX, this.y + 12 + wobbleY, 10, 0.1 * Math.PI, 0.9 * Math.PI);
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+            }
+
+            checkCollision(spike) {
+                const dx = this.x - spike.x;
+                const dy = this.y - spike.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                return distance < this.radius + spike.radius - 10;
+            }
+        }
+
+        // Bubble Class
+        class Bubble {
+            constructor() {
+                this.radius = 15 + Math.random() * 25;
+                this.x = Math.random() * (canvas.width - this.radius * 2) + this.radius;
+                this.y = canvas.height + this.radius;
+                this.speed = CONFIG.baseBubbleSpeed + Math.random() * 1;
+                this.wobbleOffset = Math.random() * Math.PI * 2;
+                this.wobbleSpeed = 0.02 + Math.random() * 0.02;
+                this.hue = Math.random() * 60 + 180; // Blue to cyan range
+                this.opacity = 0.6 + Math.random() * 0.3;
+            }
+
+            update(dt, difficulty) {
+                this.y -= this.speed * (1 + difficulty * 0.15) * (dt / 16);
+                this.wobbleOffset += this.wobbleSpeed * dt;
+                this.x += Math.sin(this.wobbleOffset) * 0.5;
+            }
+
+            draw() {
+                // Bubble body
+                const gradient = ctx.createRadialGradient(
+                    this.x - this.radius * 0.3, this.y - this.radius * 0.3, 0,
+                    this.x, this.y, this.radius
+                );
+                gradient.addColorStop(0, `hsla(${this.hue}, 80%, 85%, ${this.opacity})`);
+                gradient.addColorStop(0.7, `hsla(${this.hue}, 70%, 70%, ${this.opacity * 0.8})`);
+                gradient.addColorStop(1, `hsla(${this.hue}, 60%, 60%, ${this.opacity * 0.5})`);
+
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+
+                // Shine highlight
+                ctx.beginPath();
+                ctx.ellipse(
+                    this.x - this.radius * 0.3, 
+                    this.y - this.radius * 0.3, 
+                    this.radius * 0.3, 
+                    this.radius * 0.2, 
+                    -0.5, 0, Math.PI * 2
+                );
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.fill();
+
+                // Small highlight
+                ctx.beginPath();
+                ctx.arc(this.x - this.radius * 0.1, this.y + this.radius * 0.3, this.radius * 0.1, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.fill();
+            }
+
+            isOffScreen() {
+                return this.y < -this.radius;
+            }
+        }
+
+        // Spike Class
+        class Spike {
+            constructor() {
+                this.radius = 25;
+                this.x = Math.random() * (canvas.width - this.radius * 2) + this.radius;
+                this.y = -this.radius;
+                this.speed = CONFIG.baseSpikeSpeed + Math.random() * 0.5;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = 0.02 + Math.random() * 0.02;
+            }
+
+            update(dt, difficulty) {
+                this.y += this.speed * (1 + difficulty * 0.1) * (dt / 16);
+                this.rotation += this.rotationSpeed * dt;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+
+                // Draw spiky star shape
+                const spikes = 8;
+                const outerRadius = this.radius;
+                const innerRadius = this.radius * 0.5;
+
+                ctx.beginPath();
+                for (let i = 0; i < spikes * 2; i++) {
+                    const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                    const angle = (i * Math.PI) / spikes;
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.closePath();
+
+                // Gradient fill
+                const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, outerRadius);
+                gradient.addColorStop(0, '#FF6B6B');
+                gradient.addColorStop(0.5, '#EE5A5A');
+                gradient.addColorStop(1, '#CC4444');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+
+                // Dark outline
+                ctx.strokeStyle = '#992222';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Evil eye in center
+                ctx.beginPath();
+                ctx.arc(0, 0, 6, 0, Math.PI * 2);
+                ctx.fillStyle = '#330000';
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(-2, -2, 2, 0, Math.PI * 2);
+                ctx.fillStyle = '#FF9999';
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            isOffScreen() {
+                return this.y > canvas.height + this.radius;
+            }
+        }
+
+        // Particle Class
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 8;
+                this.vy = (Math.random() - 0.5) * 8 - 2;
+                this.radius = 3 + Math.random() * 5;
+                this.color = color;
+                this.life = 1;
+                this.decay = 0.02 + Math.random() * 0.02;
+                this.gravity = 0.1;
+            }
+
+            update(dt) {
+                this.x += this.vx * (dt / 16);
+                this.y += this.vy * (dt / 16);
+                this.vy += this.gravity;
+                this.life -= this.decay * (dt / 16);
+                this.radius *= 0.98;
+            }
+
+            draw() {
+                ctx.globalAlpha = this.life;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+
+            isDead() {
+                return this.life <= 0 || this.radius < 0.5;
+            }
+        }
+
+        // Pop Effect Class
+        class PopEffect {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 10;
+                this.maxRadius = CONFIG.popRadius;
+                this.life = 1;
+                this.expandSpeed = 15;
+            }
+
+            update(dt) {
+                this.radius += this.expandSpeed * (dt / 16);
+                this.life = 1 - (this.radius / this.maxRadius);
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(255, 255, 255, ${this.life * 0.8})`;
+                ctx.lineWidth = 4 * this.life;
+                ctx.stroke();
+
+                // Inner glow
+                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+                gradient.addColorStop(0, `rgba(255, 255, 200, ${this.life * 0.3})`);
+                gradient.addColorStop(1, 'rgba(255, 255, 200, 0)');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+            }
+
+            isDone() {
+                return this.radius >= this.maxRadius;
+            }
+
+            checkBubbleCollision(bubble) {
+                const dx = this.x - bubble.x;
+                const dy = this.y - bubble.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                return distance < this.radius + bubble.radius;
+            }
+        }
+
+        // Create pop particles
+        function createPopParticles(x, y, hue) {
+            const colors = [
+                `hsl(${hue}, 80%, 70%)`,
+                `hsl(${hue + 20}, 70%, 80%)`,
+                `hsl(${hue - 20}, 90%, 60%)`,
+                '#FFFFFF'
+            ];
+            
+            for (let i = 0; i < 12; i++) {
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        // Game Functions
+        function startGame() {
+            score = 0;
+            level = 1;
+            difficultyTimer = 0;
+            bubbles = [];
+            spikes = [];
+            particles = [];
+            popEffects = [];
+            blobby = new Blobby();
+            gameRunning = true;
+            updateUI();
+            document.getElementById('overlay').classList.add('hidden');
+            lastTime = performance.now();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('startMenu').style.display = 'none';
+            document.getElementById('gameOverMenu').style.display = 'block';
+            document.getElementById('overlay').classList.remove('hidden');
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = `Score: ${score}`;
+            document.getElementById('level').textContent = `Level ${level}`;
+        }
+
+        function handleInput(x, y) {
+            if (!gameRunning) return;
+            popEffects.push(new PopEffect(x, y));
+        }
+
+        function spawnBubbles(difficulty) {
+            const spawnRate = CONFIG.bubbleSpawnRate * (1 + difficulty * 0.1);
+            if (Math.random() < spawnRate) {
+                bubbles.push(new Bubble());
+            }
+        }
+
+        function spawnSpikes(difficulty) {
+            const spawnRate = CONFIG.spikeSpawnRate * (1 + difficulty * 0.15);
+            if (Math.random() < spawnRate) {
+                spikes.push(new Spike());
+            }
+        }
+
+        function drawBackground() {
+            // Gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(0.5, '#B8E8FF');
+            gradient.addColorStop(1, '#98D8C8');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Decorative clouds
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            drawCloud(100, 80, 60);
+            drawCloud(canvas.width - 150, 120, 50);
+            drawCloud(canvas.width / 2, 60, 45);
+        }
+
+        function drawCloud(x, y, size) {
+            ctx.beginPath();
+            ctx.arc(x, y, size * 0.5, 0, Math.PI * 2);
+            ctx.arc(x + size * 0.4, y - size * 0.1, size * 0.4, 0, Math.PI * 2);
+            ctx.arc(x + size * 0.8, y, size * 0.35, 0, Math.PI * 2);
+            ctx.arc(x + size * 0.4, y + size * 0.2, size * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function gameLoop(currentTime) {
+            const dt = Math.min(currentTime - lastTime, 50); // Cap delta time
+            lastTime = currentTime;
+
+            if (!gameRunning) return;
+
+            // Update difficulty
+            difficultyTimer += dt;
+            if (difficultyTimer >= CONFIG.difficultyInterval) {
+                difficultyTimer = 0;
+                if (level < CONFIG.maxDifficulty) {
+                    level++;
+                    updateUI();
+                }
+            }
+
+            const difficulty = level - 1;
+
+            // Clear and draw background
+            drawBackground();
+
+            // Spawn entities
+            spawnBubbles(difficulty);
+            spawnSpikes(difficulty);
+
+            // Update and draw bubbles
+            bubbles = bubbles.filter(bubble => {
+                bubble.update(dt, difficulty);
+                bubble.draw();
+                return !bubble.isOffScreen();
+            });
+
+            // Update and draw spikes
+            spikes = spikes.filter(spike => {
+                spike.update(dt, difficulty);
+                spike.draw();
+                
+                // Check collision with Blobby
+                if (blobby.checkCollision(spike)) {
+                    gameOver();
+                    return false;
+                }
+                
+                return !spike.isOffScreen();
+            });
+
+            // Update and draw pop effects
+            popEffects = popEffects.filter(pop => {
+                pop.update(dt);
+                
+                // Check bubble collisions
+                bubbles = bubbles.filter(bubble => {
+                    if (pop.checkBubbleCollision(bubble)) {
+                        score += 10;
+                        updateUI();
+                        createPopParticles(bubble.x, bubble.y, bubble.hue);
+                        return false;
+                    }
+                    return true;
+                });
+                
+                pop.draw();
+                return !pop.isDone();
+            });
+
+            // Update and draw particles
+            particles = particles.filter(particle => {
+                particle.update(dt);
+                particle.draw();
+                return !particle.isDead();
+            });
+
+            // Update and draw Blobby
+            blobby.update(dt);
+            blobby.draw();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event Listeners
+        function initEvents() {
+            // Touch events
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                for (let touch of e.touches) {
+                    handleInput(touch.clientX, touch.clientY);
+                }
+            }, { passive: false });
+
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+            }, { passive: false });
+
+            // Mouse events
+            canvas.addEventListener('mousedown', (e) => {
+                handleInput(e.clientX, e.clientY);
+            });
+
+            // Buttons
+            document.getElementById('startBtn').addEventListener('click', startGame);
+            document.getElementById('startBtn').addEventListener('touchend', (e) => {
+                e.preventDefault();
+                startGame();
+            });
+
+            document.getElementById('restartBtn').addEventListener('click', startGame);
+            document.getElementById('restartBtn').addEventListener('touchend', (e) => {
+                e.preventDefault();
+                startGame();
+            });
+        }
+
+        // Initialize
+        function init() {
+            initCanvas();
+            initEvents();
+            
+            // Draw initial background
+            drawBackground();
+        }
+
+        // Start when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>
