@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🎮 Flappy Blob - Blobby's World</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            overflow: hidden;
+            font-family: 'Comic Sans MS', 'Chalkboard', cursive, sans-serif;
+            background: #1a1a2e;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #score {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #FF6B9D;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 3px solid #FFB6C1;
+        }
+
+        #highScoreDisplay {
+            background: rgba(255, 215, 0, 0.9);
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #8B4513;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 3px solid #FFD700;
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+
+        #overlay.hidden {
+            display: none !important;
+        }
+
+        .menu-box {
+            background: linear-gradient(145deg, #FFE5EC, #FFF5F8);
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            border: 4px solid #FFB6C1;
+            max-width: 90%;
+            width: 320px;
+        }
+
+        .menu-box h1 {
+            color: #FF6B9D;
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0 #FFB6C1;
+        }
+
+        .menu-box h2 {
+            color: #6B5BFF;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .menu-box p {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .big-blobby {
+            font-size: 80px;
+            margin: 20px 0;
+            animation: bounce 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-20px); }
+        }
+
+        .play-btn {
+            background: linear-gradient(145deg, #00E676, #00C853);
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0, 230, 118, 0.4);
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 230, 118, 0.5);
+        }
+
+        .play-btn:active {
+            transform: scale(0.95);
+        }
+
+        .score-display {
+            font-size: 48px;
+            color: #FF6B9D;
+            margin: 15px 0;
+        }
+
+        .new-high-score {
+            color: #FFD700;
+            font-size: 20px;
+            animation: pulse 0.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            margin: 15px 0;
+        }
+
+        .instructions p {
+            font-size: 16px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="ui">
+        <div id="score">0</div>
+        <div id="highScoreDisplay">BEST: 0</div>
+    </div>
+
+    <div id="overlay">
+        <div class="menu-box" id="startScreen">
+            <h1>🎮 FLAPPY BLOB 🎮</h1>
+            <div class="big-blobby">🫧</div>
+            <p>Help Flappy Blob navigate through the pipes!</p>
+            <div class="instructions">
+                <p>👆 Tap or Click to flap!</p>
+                <p>🎯 Avoid the green pipes</p>
+                <p>⭐ Collect stars for bonus points!</p>
+            </div>
+            <button class="play-btn" onclick="startGame()">START GAME</button>
+        </div>
+
+        <div class="menu-box" id="gameOverScreen" style="display: none;">
+            <h1>GAME OVER</h1>
+            <div class="score-display" id="finalScore">0</div>
+            <p>Points Scored!</p>
+            <div id="newHighScoreMsg" class="new-high-score" style="display: none;">⭐ NEW HIGH SCORE! ⭐</div>
+            <button class="play-btn" onclick="startGame()">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game state
+        let gameRunning = false;
+        let score = 0;
+        let highScore = parseInt(localStorage.getItem('flappyBlob_highscore')) || 0;
+        let animationId = null;
+
+        // Update high score display
+        document.getElementById('highScoreDisplay').textContent = `BEST: ${highScore}`;
+
+        // Resize canvas
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Blob player
+        const blob = {
+            x: 0,
+            y: 0,
+            velocity: 0,
+            gravity: 0.5,
+            jumpStrength: -10,
+            radius: 25,
+            rotation: 0
+        };
+
+        // Pipes
+        let pipes = [];
+        const pipeWidth = 80;
+        const pipeGap = 200;
+        let pipeSpeed = 3;
+        let pipeSpawnTimer = 0;
+        const pipeSpawnInterval = 120;
+
+        // Stars
+        let stars = [];
+
+        // Clouds (background)
+        let clouds = [];
+
+        // Particles
+        let particles = [];
+
+        function init() {
+            blob.x = canvas.width * 0.25;
+            blob.y = canvas.height / 2;
+            blob.velocity = 0;
+            pipes = [];
+            stars = [];
+            particles = [];
+            clouds = [];
+            score = 0;
+            pipeSpeed = 3 + Math.min(score / 20, 2);
+            pipeSpawnTimer = 0;
+
+            document.getElementById('score').textContent = score;
+
+            // Initialize clouds
+            for (let i = 0; i < 5; i++) {
+                clouds.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * (canvas.height / 2),
+                    radius: 30 + Math.random() * 40,
+                    speed: 0.5 + Math.random() * 0.5
+                });
+            }
+        }
+
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'none';
+            document.getElementById('overlay').classList.add('hidden');
+            gameRunning = true;
+            init();
+            animate();
+        }
+
+        function flap() {
+            if (gameRunning) {
+                blob.velocity = blob.jumpStrength;
+                // Add jump particles
+                for (let i = 0; i < 5; i++) {
+                    particles.push({
+                        x: blob.x,
+                        y: blob.y + blob.radius,
+                        vx: (Math.random() - 0.5) * 4,
+                        vy: Math.random() * 3 + 1,
+                        life: 30,
+                        color: `hsl(${180 + Math.random() * 60}, 70%, 70%)`
+                    });
+                }
+            }
+        }
+
+        function createPipe() {
+            const minGap = 150;
+            const maxGap = 250;
+            const actualGap = minGap + Math.random() * (maxGap - minGap);
+            const minPipeLength = 80;
+            const maxPipeLength = canvas.height - actualGap - minPipeLength;
+            const topHeight = minPipeLength + Math.random() * (maxPipeLength - minPipeLength);
+
+            pipes.push({
+                x: canvas.width,
+                topHeight: topHeight,
+                gap: actualGap,
+                passed: false
+            });
+
+            // Add star in the gap
+            if (Math.random() > 0.3) {
+                stars.push({
+                    x: canvas.width + pipeWidth / 2,
+                    y: topHeight + actualGap / 2,
+                    radius: 15,
+                    collected: false,
+                    rotation: 0
+                });
+            }
+        }
+
+        function drawBlob(x, y, radius, rotation) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(rotation);
+
+            // Main blob body
+            const gradient = ctx.createRadialGradient(-5, -5, 0, 0, 0, radius);
+            gradient.addColorStop(0, '#FF9A9E');
+            gradient.addColorStop(0.5, '#FF6B9D');
+            gradient.addColorStop(1, '#C44569');
+
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+
+            // Shine
+            ctx.beginPath();
+            ctx.ellipse(-radius * 0.3, -radius * 0.3, radius * 0.25, radius * 0.15, -Math.PI / 4, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.fill();
+
+            // Eyes
+            const eyeOffset = radius * 0.25;
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(-eyeOffset, -radius * 0.1, radius * 0.25, 0, Math.PI * 2);
+            ctx.arc(eyeOffset, -radius * 0.1, radius * 0.25, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Pupils
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(-eyeOffset + 2, -radius * 0.1, radius * 0.12, 0, Math.PI * 2);
+            ctx.arc(eyeOffset + 2, -radius * 0.1, radius * 0.12, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Smile
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(0, radius * 0.1, radius * 0.3, 0.2, Math.PI - 0.2);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function drawPipe(x, height, isTop) {
+            // Pipe body gradient
+            const pipeGradient = ctx.createLinearGradient(x, 0, x + pipeWidth, 0);
+            pipeGradient.addColorStop(0, '#2ECC71');
+            pipeGradient.addColorStop(0.5, '#27AE60');
+            pipeGradient.addColorStop(1, '#1E8449');
+
+            // Main pipe
+            ctx.fillStyle = pipeGradient;
+            if (isTop) {
+                ctx.fillRect(x, 0, pipeWidth, height);
+                // Pipe cap
+                ctx.fillStyle = '#27AE60';
+                ctx.fillRect(x - 10, height - 30, pipeWidth + 20, 30);
+                // Highlight
+                ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                ctx.fillRect(x + 5, 0, 10, height - 35);
+            } else {
+                ctx.fillRect(x, canvas.height - height, pipeWidth, height);
+                // Pipe cap
+                ctx.fillStyle = '#27AE60';
+                ctx.fillRect(x - 10, canvas.height - height, pipeWidth + 20, 30);
+                // Highlight
+                ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                ctx.fillRect(x + 5, canvas.height - height + 35, 10, height);
+            }
+
+            // Border
+            ctx.strokeStyle = '#145A32';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, isTop ? 0 : canvas.height - height, pipeWidth, height);
+        }
+
+        function drawStar(star) {
+            ctx.save();
+            ctx.translate(star.x, star.y);
+            ctx.rotate(star.rotation);
+
+            // Star glow
+            const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, star.radius * 2);
+            glow.addColorStop(0, 'rgba(255, 215, 0, 0.8)');
+            glow.addColorStop(1, 'rgba(255, 215, 0, 0)');
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(0, 0, star.radius * 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Star shape
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * Math.PI * 2) / 5 - Math.PI / 2;
+                const x = Math.cos(angle) * star.radius;
+                const y = Math.sin(angle) * star.radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+
+                const innerAngle = angle + Math.PI / 5;
+                const innerX = Math.cos(innerAngle) * star.radius * 0.4;
+                const innerY = Math.sin(innerAngle) * star.radius * 0.4;
+                ctx.lineTo(innerX, innerY);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            // Star border
+            ctx.strokeStyle = '#FFA500';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function drawCloud(cloud) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.beginPath();
+            ctx.arc(cloud.x, cloud.y, cloud.radius, 0, Math.PI * 2);
+            ctx.arc(cloud.x + cloud.radius * 0.8, cloud.y - cloud.radius * 0.2, cloud.radius * 0.7, 0, Math.PI * 2);
+            ctx.arc(cloud.x + cloud.radius * 1.4, cloud.y, cloud.radius * 0.6, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawBackground() {
+            // Sky gradient
+            const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            skyGradient.addColorStop(0, '#87CEEB');
+            skyGradient.addColorStop(0.5, '#B4E4FF');
+            skyGradient.addColorStop(1, '#98D8C8');
+            ctx.fillStyle = skyGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw clouds
+            clouds.forEach(drawCloud);
+        }
+
+        function update() {
+            // Blob physics
+            blob.velocity += blob.gravity;
+            blob.y += blob.velocity;
+            blob.rotation = Math.min(Math.max(blob.velocity * 0.05, -0.5), 0.8);
+
+            // Update clouds
+            clouds.forEach(cloud => {
+                cloud.x -= cloud.speed;
+                if (cloud.x + cloud.radius * 2 < 0) {
+                    cloud.x = canvas.width + cloud.radius;
+                    cloud.y = Math.random() * (canvas.height / 2);
+                }
+            });
+
+            // Spawn pipes
+            pipeSpawnTimer++;
+            if (pipeSpawnTimer >= pipeSpawnInterval) {
+                createPipe();
+                pipeSpawnTimer = 0;
+            }
+
+            // Update pipes
+            pipes.forEach((pipe, index) => {
+                pipe.x -= pipeSpeed;
+
+                // Check if blob passed the pipe
+                if (!pipe.passed && pipe.x + pipeWidth < blob.x) {
+                    pipe.passed = true;
+                    score++;
+                    document.getElementById('score').textContent = score;
+
+                    // Increase difficulty
+                    if (score % 5 === 0) {
+                        pipeSpeed = Math.min(pipeSpeed + 0.2, 6);
+                    }
+                }
+
+                // Remove off-screen pipes
+                if (pipe.x + pipeWidth < 0) {
+                    pipes.splice(index, 1);
+                }
+            });
+
+            // Update stars
+            stars.forEach((star, index) => {
+                star.x -= pipeSpeed;
+                star.rotation += 0.05;
+
+                // Check collision with blob
+                if (!star.collected) {
+                    const dx = star.x - blob.x;
+                    const dy = star.y - blob.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < blob.radius + star.radius) {
+                        star.collected = true;
+                        score += 3; // Bonus points!
+                        document.getElementById('score').textContent = score;
+
+                        // Star collection particles
+                        for (let i = 0; i < 10; i++) {
+                            particles.push({
+                                x: star.x,
+                                y: star.y,
+                                vx: (Math.random() - 0.5) * 8,
+                                vy: (Math.random() - 0.5) * 8,
+                                life: 40,
+                                color: '#FFD700'
+                            });
+                        }
+                    }
+                }
+
+                // Remove off-screen stars
+                if (star.x + star.radius < 0) {
+                    stars.splice(index, 1);
+                }
+            });
+
+            // Update particles
+            particles.forEach((p, index) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+                if (p.life <= 0) {
+                    particles.splice(index, 1);
+                }
+            });
+
+            // Collision detection
+            // Ground/Ceiling
+            if (blob.y + blob.radius > canvas.height || blob.y - blob.radius < 0) {
+                gameOver();
+            }
+
+            // Pipes
+            pipes.forEach(pipe => {
+                const blobLeft = blob.x - blob.radius;
+                const blobRight = blob.x + blob.radius;
+                const blobTop = blob.y - blob.radius;
+                const blobBottom = blob.y + blob.radius;
+
+                // Check top pipe
+                if (blobRight > pipe.x && blobLeft < pipe.x + pipeWidth) {
+                    if (blobTop < pipe.topHeight) {
+                        gameOver();
+                    }
+                    if (blobBottom > canvas.height - pipe.gap + (canvas.height - pipe.topHeight - pipe.gap)) {
+                        gameOver();
+                    }
+                }
+            });
+        }
+
+        function draw() {
+            drawBackground();
+
+            // Draw particles
+            particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life / 40;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+
+            // Draw stars
+            stars.filter(s => !s.collected).forEach(drawStar);
+
+            // Draw pipes
+            pipes.forEach(pipe => {
+                drawPipe(pipe.x, pipe.topHeight, true);
+                drawPipe(pipe.x, canvas.height - pipe.topHeight - pipe.gap, false);
+            });
+
+            // Draw blob
+            drawBlob(blob.x, blob.y, blob.radius, blob.rotation);
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            cancelAnimationFrame(animationId);
+
+            // Check high score
+            const isNewHighScore = score > highScore;
+            if (isNewHighScore) {
+                highScore = score;
+                localStorage.setItem('flappyBlob_highscore', highScore);
+                document.getElementById('highScoreDisplay').textContent = `BEST: ${highScore}`;
+            }
+
+            // Show game over screen
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('newHighScoreMsg').style.display = isNewHighScore ? 'block' : 'none';
+            document.getElementById('gameOverScreen').style.display = 'block';
+            document.getElementById('overlay').classList.remove('hidden');
+        }
+
+        function animate() {
+            if (!gameRunning) return;
+
+            update();
+            draw();
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // Controls
+        function handleInput(e) {
+            e.preventDefault();
+            if (gameRunning) {
+                flap();
+            }
+        }
+
+        // Mouse/Touch controls
+        canvas.addEventListener('mousedown', handleInput);
+        canvas.addEventListener('touchstart', handleInput, { passive: false });
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp') {
+                handleInput(e);
+            }
+        });
+
+        // Initial draw
+        draw();
+    </script>
+</body>
+</html>
