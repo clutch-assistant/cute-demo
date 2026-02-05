@@ -406,6 +406,13 @@
                 <p><b>Difficulty:</b> ⭐⭐⭐⭐</p>
                 <button class="play-btn">PLAY NOW!</button>
             </div>
+
+            <div class="game-card" onclick="openGame('bubblepop')">
+                <h3>🫧 BUBBLE POP ADVENTURE</h3>
+                <p>Pop bubbles and dodge spiky obstacles!</p>
+                <p><b>Difficulty:</b> ⭐⭐⭐</p>
+                <button class="play-btn">PLAY NOW!</button>
+            </div>
         </div>
 
         <div class="footer">
@@ -512,6 +519,10 @@
                     break;
                 case 'blobbeats':
                     startBlobBeatsGame();
+                    break;
+                case 'bubblepop':
+                    window.open('bubble-pop.html', '_blank');
+                    closeGame();
                     break;
             }
         }
