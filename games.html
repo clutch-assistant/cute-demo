@@ -427,6 +427,13 @@
                 <p><b>Difficulty:</b> ⭐⭐⭐</p>
                 <button class="play-btn">PLAY NOW!</button>
             </div>
+
+            <div class="game-card" onclick="openGame('blobinvaders')">
+                <h3>👾 BLOB INVADERS</h3>
+                <p>Classic arcade shooter! Destroy waves of alien blobs!</p>
+                <p><b>Difficulty:</b> ⭐⭐⭐⭐</p>
+                <button class="play-btn">PLAY NOW!</button>
+            </div>
         </div>
 
         <div class="footer">
@@ -536,6 +543,10 @@
                     break;
                 case 'bubblepop':
                     window.open('bubble-pop.html', '_blank');
+                    closeGame();
+                    break;
+                case 'blobinvaders':
+                    window.open('blob-invaders.html', '_blank');
                     closeGame();
                     break;
             }
