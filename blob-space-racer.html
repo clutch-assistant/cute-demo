@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🚀 BLOB SPACE RACER - Blobby's World</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(180deg, #000033 0%, #000066 50%, #000033 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            background: #000;
+            border: 4px solid #00ffff;
+            box-shadow: 0 0 20px #00ffff, inset 0 0 50px rgba(0,255,255,0.1);
+            overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+            pointer-events: none;
+        }
+        
+        .score-display, .high-score-display {
+            color: #00ff00;
+            font-size: 16px;
+            text-shadow: 0 0 10px #00ff00;
+        }
+        
+        .start-screen, .game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        .game-over-screen {
+            display: none;
+        }
+        
+        h1 {
+            color: #00ffff;
+            font-size: 28px;
+            text-shadow: 0 0 20px #00ffff, 4px 4px 0 #ff00ff;
+            margin-bottom: 10px;
+            text-align: center;
+            animation: titlePulse 1s infinite alternate;
+        }
+        
+        @keyframes titlePulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+        
+        .subtitle {
+            color: #ff00ff;
+            font-size: 14px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px #ff00ff;
+        }
+        
+        .instructions {
+            color: #ffff00;
+            font-size: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .start-btn, .restart-btn {
+            background: linear-gradient(180deg, #00ff00 0%, #00aa00 100%);
+            color: #000;
+            border: 4px solid #00ff00;
+            padding: 15px 40px;
+            font-size: 20px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            text-shadow: 2px 2px 0 #fff;
+            box-shadow: 0 0 20px #00ff00, inset 0 0 10px rgba(255,255,255,0.5);
+            transition: all 0.2s;
+            animation: btnPulse 1.5s infinite;
+        }
+        
+        @keyframes btnPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        
+        .start-btn:active, .restart-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 10px #00ff00;
+        }
+        
+        .final-score {
+            color: #00ffff;
+            font-size: 36px;
+            text-shadow: 0 0 20px #00ffff;
+            margin: 20px 0;
+        }
+        
+        .new-high-score {
+            color: #ffff00;
+            font-size: 18px;
+            text-shadow: 0 0 15px #ffff00;
+            animation: highScoreBlink 0.5s infinite alternate;
+        }
+        
+        @keyframes highScoreBlink {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0.8; transform: scale(1.1); }
+        }
+        
+        .speed-indicator {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ff6600;
+            font-size: 12px;
+            text-shadow: 0 0 10px #ff6600;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 420px) {
+            h1 { font-size: 22px; }
+            .subtitle { font-size: 12px; }
+            .instructions { font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+        
+        <div class="ui-overlay">
+            <div class="score-display">SCORE: <span id="score">0</span></div>
+            <div class="high-score-display">BEST: <span id="highScore">0</span></div>
+        </div>
+        
+        <div class="speed-indicator" id="speedIndicator">SPEED: 1x</div>
+        
+        <div class="start-screen" id="startScreen">
+            <h1>🚀 BLOB SPACE RACER 🚀</h1>
+            <div class="subtitle">★ BLAZE THROUGH THE COSMOS! ★</div>
+            <div class="instructions">
+                🎮 TOUCH/CLICK left or right to move<br><br>
+                ⭐ Dodge asteroids and collect stars!<br>
+                🏆 Survive as long as you can!
+            </div>
+            <button class="start-btn" id="startBtn">START GAME!</button>
+        </div>
+        
+        <div class="game-over-screen" id="gameOverScreen">
+            <h1>💥 GAME OVER! 💥</h1>
+            <div class="final-score">SCORE: <span id="finalScore">0</span></div>
+            <div class="new-high-score" id="newHighScore" style="display: none;">🏆 NEW HIGH SCORE! 🏆</div>
+            <button class="restart-btn" id="restartBtn">PLAY AGAIN!</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Game state
+        let gameRunning = false;
+        let score = 0;
+        let highScore = parseInt(localStorage.getItem('blobSpaceRacerHighScore')) || 0;
+        let speed = 3;
+        let distance = 0;
+        
+        // Update high score display
+        document.getElementById('highScore').textContent = highScore;
+        
+        // Player ship
+        const player = {
+            x: 175,
+            y: 500,
+            width: 50,
+            height: 50,
+            targetX: 175,
+            speed: 15
+        };
+        
+        // Game objects
+        let stars = [];
+        let asteroids = [];
+        let particles = [];
+        let collectibles = [];
+        
+        // Touch/Mouse tracking
+        let touchX = null;
+        
+        // Initialize game
+        function init() {
+            score = 0;
+            speed = 3;
+            distance = 0;
+            player.x = 175;
+            player.targetX = 175;
+            stars = [];
+            asteroids = [];
+            particles = [];
+            collectibles = [];
+            
+            // Create initial stars
+            for (let i = 0; i < 50; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2 + 1,
+                    speed: Math.random() * 2 + 1
+                });
+            }
+            
+            // Initial asteroids
+            for (let i = 0; i < 3; i++) {
+                spawnAsteroid();
+            }
+            
+            document.getElementById('score').textContent = '0';
+            document.getElementById('speedIndicator').textContent = 'SPEED: 1x';
+        }
+        
+        // Spawn asteroid
+        function spawnAsteroid() {
+            const size = Math.random() * 30 + 20;
+            asteroids.push({
+                x: Math.random() * (canvas.width - size),
+                y: -size,
+                size: size,
+                speed: speed + Math.random() * 2,
+                rotation: 0,
+                rotationSpeed: (Math.random() - 0.5) * 0.1
+            });
+        }
+        
+        // Spawn collectible (star)
+        function spawnCollectible() {
+            if (Math.random() < 0.02) {
+                collectibles.push({
+                    x: Math.random() * (canvas.width - 30),
+                    y: -30,
+                    size: 25,
+                    speed: speed,
+                    rotation: 0
+                });
+            }
+        }
+        
+        // Create explosion particles
+        function createExplosion(x, y, color) {
+            for (let i = 0; i < 15; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
+                    size: Math.random() * 4 + 2,
+                    color: color,
+                    life: 1
+                });
+            }
+        }
+        
+        // Draw player ship (blob spaceship)
+        function drawPlayer() {
+            ctx.save();
+            ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
+            
+            // Engine glow
+            const gradient = ctx.createRadialGradient(0, 25, 0, 0, 25, 30);
+            gradient.addColorStop(0, '#00ffff');
+            gradient.addColorStop(0.5, '#0088ff');
+            gradient.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(0, 25, 30, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Ship body
+            ctx.fillStyle = '#00ff88';
+            ctx.beginPath();
+            ctx.moveTo(0, -25);
+            ctx.lineTo(-20, 20);
+            ctx.lineTo(0, 10);
+            ctx.lineTo(20, 20);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Ship outline
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Cockpit
+            ctx.fillStyle = '#ff66ff';
+            ctx.beginPath();
+            ctx.arc(0, -5, 10, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Wings
+            ctx.fillStyle = '#00aaff';
+            ctx.beginPath();
+            ctx.moveTo(-20, 15);
+            ctx.lineTo(-35, 25);
+            ctx.lineTo(-20, 5);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(20, 15);
+            ctx.lineTo(35, 25);
+            ctx.lineTo(20, 5);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+        }
+        
+        // Draw asteroid
+        function drawAsteroid(asteroid) {
+            ctx.save();
+            ctx.translate(asteroid.x + asteroid.size / 2, asteroid.y + asteroid.size / 2);
+            ctx.rotate(asteroid.rotation);
+            
+            // Asteroid body
+            ctx.fillStyle = '#8B4513';
+            ctx.beginPath();
+            const points = 8;
+            for (let i = 0; i < points * 2; i++) {
+                const angle = (i / (points * 2)) * Math.PI * 2;
+                const radius = asteroid.size / 2 * (i % 2 === 0 ? 1 : 0.7);
+                const px = Math.cos(angle) * radius;
+                const py = Math.sin(angle) * radius;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.fill();
+            
+            // Craters
+            ctx.fillStyle = '#654321';
+            ctx.beginPath();
+            ctx.arc(-5, -5, asteroid.size / 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(8, 5, asteroid.size / 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Outline
+            ctx.strokeStyle = '#4a2810';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+        
+        // Draw collectible (star)
+        function drawCollectible(collectible) {
+            ctx.save();
+            ctx.translate(collectible.x + collectible.size / 2, collectible.y + collectible.size / 2);
+            ctx.rotate(collectible.rotation);
+            
+            // Glow
+            const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, collectible.size);
+            gradient.addColorStop(0, '#ffff00');
+            gradient.addColorStop(0.5, '#ffaa00');
+            gradient.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(0, 0, collectible.size, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Star shape
+            ctx.fillStyle = '#ffff00';
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+                const radius = collectible.size / 2;
+                const px = Math.cos(angle) * radius;
+                const py = Math.sin(angle) * radius;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+                
+                const innerAngle = ((i * 4) + 2) * Math.PI / 5 - Math.PI / 2;
+                const innerRadius = radius / 2;
+                const ipx = Math.cos(innerAngle) * innerRadius;
+                const ipy = Math.sin(innerAngle) * innerRadius;
+                ctx.lineTo(ipx, ipy);
+            }
+            ctx.closePath();
+            ctx.fill();
+            
+            // Star outline
+            ctx.strokeStyle = '#ff6600';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+        
+        // Draw particles
+        function drawParticles() {
+            particles.forEach(p => {
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+        }
+        
+        // Draw stars (background)
+        function drawStars() {
+            stars.forEach(star => {
+                ctx.fillStyle = `rgba(255, 255, 255, ${0.5 + star.speed / 3})`;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+        
+        // Game loop
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            // Clear canvas
+            ctx.fillStyle = '#000022';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw stars
+            drawStars();
+            
+            // Update and draw particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.02;
+                
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            drawParticles();
+            
+            // Update player position (smooth movement)
+            const dx = player.targetX - player.x;
+            player.x += dx * 0.2;
+            
+            // Keep player in bounds
+            if (player.x < 0) player.targetX = 0;
+            if (player.x > canvas.width - player.width) player.targetX = canvas.width - player.width;
+            player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+            
+            // Draw player
+            drawPlayer();
+            
+            // Update and draw asteroids
+            for (let i = asteroids.length - 1; i >= 0; i--) {
+                const asteroid = asteroids[i];
+                asteroid.y += asteroid.speed;
+                asteroid.rotation += asteroid.rotationSpeed;
+                
+                drawAsteroid(asteroid);
+                
+                // Remove if off screen
+                if (asteroid.y > canvas.height + asteroid.size) {
+                    asteroids.splice(i, 1);
+                }
+                
+                // Check collision with player
+                if (checkCollision(player, asteroid)) {
+                    gameOver();
+                    return;
+                }
+            }
+            
+            // Update and draw collectibles
+            for (let i = collectibles.length - 1; i >= 0; i--) {
+                const c = collectibles[i];
+                c.y += c.speed;
+                c.rotation += 0.05;
+                
+                drawCollectible(c);
+                
+                // Remove if off screen
+                if (c.y > canvas.height + c.size) {
+                    collectibles.splice(i, 1);
+                }
+                
+                // Check collision with player
+                if (checkCollision(player, c)) {
+                    score += 50;
+                    document.getElementById('score').textContent = score;
+                    createExplosion(c.x, c.y, '#ffff00');
+                    collectibles.splice(i, 1);
+                }
+            }
+            
+            // Spawn new asteroids
+            if (Math.random() < 0.02 + score / 10000) {
+                spawnAsteroid();
+            }
+            
+            // Spawn collectibles
+            spawnCollectible();
+            
+            // Increase difficulty over time
+            distance += speed;
+            if (distance % 1000 < speed) {
+                speed = Math.min(12, 3 + Math.floor(distance / 3000));
+                document.getElementById('speedIndicator').textContent = `SPEED: ${(speed / 3).toFixed(1)}x`;
+            }
+            
+            // Score increases over time
+            score += Math.floor(speed / 3);
+            document.getElementById('score').textContent = score;
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Collision detection
+        function checkCollision(a, b) {
+            const aBox = {
+                x: a.x + 10,
+                y: a.y + 10,
+                width: a.width - 20,
+                height: a.height - 20
+            };
+            
+            const bBox = {
+                x: b.x + b.size * 0.2,
+                y: b.y + b.size * 0.2,
+                width: b.size * 0.6,
+                height: b.size * 0.6
+            };
+            
+            return aBox.x < bBox.x + bBox.width &&
+                   aBox.x + aBox.width > bBox.x &&
+                   aBox.y < bBox.y + bBox.height &&
+                   aBox.height + aBox.y > bBox.y;
+        }
+        
+        // Game over
+        function gameOver() {
+            gameRunning = false;
+            
+            // Create explosion effect
+            createExplosion(
+                player.x + player.width / 2,
+                player.y + player.height / 2,
+                '#00ff88'
+            );
+            
+            // Check for high score
+            const isNewHighScore = score > highScore;
+            if (isNewHighScore) {
+                highScore = score;
+                localStorage.setItem('blobSpaceRacerHighScore', highScore);
+                document.getElementById('highScore').textContent = highScore;
+            }
+            
+            // Show game over screen
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('newHighScore').style.display = isNewHighScore ? 'block' : 'none';
+            document.getElementById('gameOverScreen').style.display = 'flex';
+        }
+        
+        // Start game
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'none';
+            init();
+            gameRunning = true;
+            gameLoop();
+        }
+        
+        // Event listeners
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('restartBtn').addEventListener('click', startGame);
+        
+        // Touch controls
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            touchX = (e.touches[0].clientX - rect.left) * (canvas.width / rect.width);
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            touchX = (e.touches[0].clientX - rect.left) * (canvas.width / rect.width);
+            player.targetX = touchX - player.width / 2;
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            touchX = null;
+        });
+        
+        // Mouse controls
+        canvas.addEventListener('mousemove', (e) => {
+            if (!gameRunning) return;
+            const rect = canvas.getBoundingClientRect();
+            player.targetX = (e.clientX - rect.left) * (canvas.width / rect.width) - player.width / 2;
+        });
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+            
+            switch(e.key) {
+                case 'ArrowLeft':
+                    player.targetX = Math.max(0, player.x - 50);
+                    break;
+                case 'ArrowRight':
+                    player.targetX = Math.min(canvas.width - player.width, player.x + 50);
+                    break;
+                case 'a':
+                case 'A':
+                    player.targetX = Math.max(0, player.x - 50);
+                    break;
+                case 'd':
+                case 'D':
+                    player.targetX = Math.min(canvas.width - player.width, player.x + 50);
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>
