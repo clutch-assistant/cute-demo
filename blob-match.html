@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>💜 BLOB MATCH 💜 - Blobby's World</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard', cursive, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            touch-action: none;
+        }
+        
+        h1 {
+            color: #e94560;
+            text-shadow: 3px 3px 0 #000, 6px 6px 0 #ff00ff;
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            margin-bottom: 10px;
+            animation: bounce 0.5s infinite alternate;
+        }
+        
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-5px); }
+        }
+        
+        #gameCanvas {
+            border: 6px ridge #e94560;
+            background: linear-gradient(180deg, #2a2a4e 0%, #1a1a3e 100%);
+            box-shadow: 0 0 40px rgba(233, 69, 96, 0.6);
+            max-width: 95vw;
+            max-height: 70vh;
+        }
+        
+        #scoreBoard {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .stat {
+            background: #000;
+            color: #0f0;
+            padding: 10px 20px;
+            border: 4px inset #808080;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+        }
+        
+        .stat span {
+            color: #ff00ff;
+            font-weight: bold;
+        }
+        
+        #comboDisplay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            color: #ffff00;
+            text-shadow: 4px 4px 0 #ff00ff, 8px 8px 0 #000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .instructions {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>💜 BLOB MATCH 💜</h1>
+    <div id="scoreBoard">
+        <div class="stat">SCORE: <span id="score">0</span></div>
+        <div class="stat">MOVES: <span id="moves">30</span></div>
+        <div class="stat">HIGH: <span id="highScore">0</span></div>
+    </div>
+    <canvas id="gameCanvas" width="400" height="500"></canvas>
+    <div class="instructions">
+        💡 Tap/click adjacent blobs to swap & match 3+!
+    </div>
+    <div id="comboDisplay"></div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Responsive canvas
+        function resizeCanvas() {
+            const maxWidth = Math.min(window.innerWidth - 20, 400);
+            const maxHeight = Math.min(window.innerHeight - 200, 500);
+            const size = Math.min(maxWidth, maxHeight);
+            canvas.width = size;
+            canvas.height = size * 1.25;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Game state
+        let score = 0;
+        let moves = 30;
+        let highScore = parseInt(localStorage.getItem('blobMatchHighScore')) || 0;
+        document.getElementById('highScore').textContent = highScore;
+        
+        const BLOB_TYPES = ['💜', '💚', '💛', '❤️', '🩵', '🤎'];
+        const BLOB_COLORS = ['#9b59b6', '#2ecc71', '#f1c40f', '#e74c3c', '#3498db', '#8b7355'];
+        
+        const GRID_SIZE = 6;
+        let CELL_SIZE = canvas.width / GRID_SIZE;
+        
+        let grid = [];
+        let selectedBlob = null;
+        let isAnimating = false;
+        let comboCount = 0;
+        
+        // Initialize grid
+        function initGrid() {
+            grid = [];
+            for (let row = 0; row < GRID_SIZE; row++) {
+                grid[row] = [];
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    grid[row][col] = createRandomBlob(row, col);
+                }
+            }
+            // Remove initial matches
+            while (findMatches().length > 0) {
+                removeMatches(findMatches());
+                fillEmptySpaces();
+            }
+        }
+        
+        function createRandomBlob(row, col) {
+            const type = Math.floor(Math.random() * BLOB_TYPES.length);
+            return {
+                type: type,
+                x: col * CELL_SIZE,
+                y: row * CELL_SIZE,
+                targetX: col * CELL_SIZE,
+                targetY: row * CELL_SIZE,
+                scale: 1,
+                alpha: 1
+            };
+        }
+        
+        // Drawing
+        function drawBlob(blob, x, y, size) {
+            const padding = 4;
+            const blobSize = (size - padding * 2) * blob.scale * 0.85;
+            
+            ctx.save();
+            ctx.globalAlpha = blob.alpha;
+            
+            // Draw blob shape (rounded rectangle with gradient)
+            const gradient = ctx.createRadialGradient(
+                x + size/2, y + size/2, 0,
+                x + size/2, y + size/2, blobSize
+            );
+            gradient.addColorStop(0, lightenColor(BLOB_COLORS[blob.type], 30));
+            gradient.addColorStop(1, BLOB_COLORS[blob.type]);
+            
+            ctx.fillStyle = gradient;
+            
+            // Rounded rectangle blob
+            const radius = blobSize * 0.4;
+            ctx.beginPath();
+            ctx.roundRect(x + size/2 - blobSize/2, y + size/2 - blobSize/2, blobSize, blobSize, radius);
+            ctx.fill();
+            
+            // Face
+            ctx.fillStyle = '#fff';
+            const eyeSize = blobSize * 0.15;
+            const eyeOffset = blobSize * 0.2;
+            
+            // Eyes
+            ctx.beginPath();
+            ctx.arc(x + size/2 - eyeOffset, y + size/2 - eyeOffset * 0.5, eyeSize, 0, Math.PI * 2);
+            ctx.arc(x + size/2 + eyeOffset, y + size/2 - eyeOffset * 0.5, eyeSize, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Pupils
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(x + size/2 - eyeOffset, y + size/2 - eyeOffset * 0.5, eyeSize * 0.5, 0, Math.PI * 2);
+            ctx.arc(x + size/2 + eyeOffset, y + size/2 - eyeOffset * 0.5, eyeSize * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Smile
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = blobSize * 0.08;
+            ctx.beginPath();
+            ctx.arc(x + size/2, y + size/2 + eyeOffset * 0.3, blobSize * 0.25, 0.1 * Math.PI, 0.9 * Math.PI);
+            ctx.stroke();
+            
+            // Selection highlight
+            if (selectedBlob === blob) {
+                ctx.strokeStyle = '#ffff00';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.roundRect(x + 2, y + 2, size - 4, size - 4, radius);
+                ctx.stroke();
+            }
+            
+            ctx.restore();
+        }
+        
+        function lightenColor(color, percent) {
+            const num = parseInt(color.replace('#', ''), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = Math.min(255, (num >> 16) + amt);
+            const G = Math.min(255, ((num >> 8) & 0x00FF) + amt);
+            const B = Math.min(255, (num & 0x0000FF) + amt);
+            return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+        }
+        
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid background
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= GRID_SIZE; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * CELL_SIZE, 0);
+                ctx.lineTo(i * CELL_SIZE, canvas.height);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i * CELL_SIZE);
+                ctx.lineTo(canvas.width, i * CELL_SIZE);
+                ctx.stroke();
+            }
+            
+            // Draw blobs
+            for (let row = 0; row < GRID_SIZE; row++) {
+                for (let col = 0; col < GRID_SIZE; col++) {
+                    if (grid[row][col]) {
+                        drawBlob(grid[row][col], grid[row][col].x, grid[row][col].y, CELL_SIZE);
+                    }
+                }
+            }
+        }
+        
+        // Game logic
+        function findMatches() {
+            const matches = [];
+            
+            // Check horizontal matches
+            for (let row = 0; row < GRID_SIZE; row++) {
+                for (let col = 0; col < GRID_SIZE - 2; col++) {
+                    const blob = grid[row][col];
+                    if (blob && grid[row][col+1] && grid[row][col+2]) {
+                        if (blob.type === grid[row][col+1].type && blob.type === grid[row][col+2].type) {
+                            matches.push({row, col: col});
+                            matches.push({row, col: col+1});
+                            matches.push({row, col: col+2});
+                            
+                            // Check for longer matches
+                            let i = 3;
+                            while (col + i < GRID_SIZE && grid[row][col+i] && grid[row][col+i].type === blob.type) {
+                                matches.push({row, col: col+i});
+                                i++;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Check vertical matches
+            for (let col = 0; col < GRID_SIZE; col++) {
+                for (let row = 0; row < GRID_SIZE - 2; row++) {
+                    const blob = grid[row][col];
+                    if (blob && grid[row+1][col] && grid[row+2][col]) {
+                        if (blob.type === grid[row+1][col].type && blob.type === grid[row+2][col].type) {
+                            matches.push({row, col});
+                            matches.push({row: row+1, col});
+                            matches.push({row: row+2, col});
+                            
+                            // Check for longer matches
+                            let i = 3;
+                            while (row + i < GRID_SIZE && grid[row+i][col] && grid[row+i][col].type === blob.type) {
+                                matches.push({row: row+i, col});
+                                i++;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Remove duplicates
+            const unique = [];
+            const seen = new Set();
+            for (const m of matches) {
+                const key = `${m.row},${m.col}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    unique.push(m);
+                }
+            }
+            
+            return unique;
+        }
+        
+        function removeMatches(matches) {
+            if (matches.length === 0) return;
+            
+            comboCount++;
+            const basePoints = matches.length * 10;
+            const comboMultiplier = Math.min(comboCount, 5);
+            const points = basePoints * comboMultiplier;
+            
+            score += points;
+            document.getElementById('score').textContent = score;
+            
+            if (comboCount > 1) {
+                showCombo(comboCount, points);
+            }
+            
+            // Animate removal
+            for (const m of matches) {
+                if (grid[m.row][m.col]) {
+                    grid[m.row][m.col].scale = 0;
+                }
+            }
+            
+            // Remove from grid after animation
+            setTimeout(() => {
+                for (const m of matches) {
+                    grid[m.row][m.col] = null;
+                }
+            }, 200);
+        }
+        
+        function showCombo(combo, points) {
+            const display = document.getElementById('comboDisplay');
+            display.textContent = `${combo}x COMBO! +${points}`;
+            display.style.opacity = '1';
+            setTimeout(() => {
+                display.style.opacity = '0';
+            }, 800);
+        }
+        
+        function fillEmptySpaces() {
+            // Drop existing blobs
+            for (let col = 0; col < GRID_SIZE; col++) {
+                let emptyRow = GRID_SIZE - 1;
+                for (let row = GRID_SIZE - 1; row >= 0; row--) {
+                    if (grid[row][col] !== null) {
+                        if (row !== emptyRow) {
+                            grid[emptyRow][col] = grid[row][col];
+                            grid[emptyRow][col].targetY = emptyRow * CELL_SIZE;
+                            grid[row][col] = null;
+                        }
+                        emptyRow--;
+                    }
+                }
+                
+                // Fill top with new blobs
+                for (let row = emptyRow; row >= 0; row--) {
+                    const blob = createRandomBlob(row, col);
+                    blob.y = -CELL_SIZE * (emptyRow - row + 1);
+                    blob.targetY = row * CELL_SIZE;
+                    grid[row][col] = blob;
+                }
+            }
+        }
+        
+        function areAdjacent(pos1, pos2) {
+            const rowDiff = Math.abs(pos1.row - pos2.row);
+            const colDiff = Math.abs(pos1.col - pos2.col);
+            return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+        }
+        
+        function getBlobAtPosition(x, y) {
+            const col = Math.floor(x / CELL_SIZE);
+            const row = Math.floor(y / CELL_SIZE);
+            if (row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE) {
+                return { row, col, blob: grid[row][col] };
+            }
+            return null;
+        }
+        
+        function swapBlobs(pos1, pos2) {
+            const temp = grid[pos1.row][pos1.col];
+            grid[pos1.row][pos1.col] = grid[pos2.row][pos2.col];
+            grid[pos2.row][pos2.col] = temp;
+            
+            // Update target positions
+            if (grid[pos1.row][pos1.col]) {
+                grid[pos1.row][pos1.col].targetX = pos1.col * CELL_SIZE;
+                grid[pos1.row][pos1.col].targetY = pos1.row * CELL_SIZE;
+            }
+            if (grid[pos2.row][pos2.col]) {
+                grid[pos2.row][pos2.col].targetX = pos2.col * CELL_SIZE;
+                grid[pos2.row][pos2.col].targetY = pos2.row * CELL_SIZE;
+            }
+        }
+        
+        async function handleSwap(pos1, pos2) {
+            if (isAnimating || moves <= 0) return;
+            
+            isAnimating = true;
+            comboCount = 0;
+            
+            swapBlobs(pos1, pos2);
+            
+            // Wait for swap animation
+            await animateMove();
+            
+            const matches = findMatches();
+            if (matches.length > 0) {
+                moves--;
+                document.getElementById('moves').textContent = moves;
+                
+                // Process matches
+                while (findMatches().length > 0) {
+                    removeMatches(findMatches());
+                    await delay(250);
+                    fillEmptySpaces();
+                    await animateMove();
+                }
+                
+                if (moves <= 0) {
+                    endGame();
+                }
+            } else {
+                // Swap back if no match
+                swapBlobs(pos1, pos2);
+                await animateMove();
+            }
+            
+            isAnimating = false;
+        }
+        
+        function animateMove() {
+            return new Promise(resolve => {
+                let animating = true;
+                const animate = () => {
+                    let allDone = true;
+                    
+                    for (let row = 0; row < GRID_SIZE; row++) {
+                        for (let col = 0; col < GRID_SIZE; col++) {
+                            if (grid[row][col]) {
+                                const blob = grid[row][col];
+                                const dx = blob.targetX - blob.x;
+                                const dy = blob.targetY - blob.y;
+                                
+                                if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+                                    blob.x += dx * 0.3;
+                                    blob.y += dy * 0.3;
+                                    allDone = false;
+                                } else {
+                                    blob.x = blob.targetX;
+                                    blob.y = blob.targetY;
+                                }
+                                
+                                // Scale animation for removal
+                                if (blob.scale < 1 && blob.alpha > 0) {
+                                    blob.scale += 0.1;
+                                }
+                            }
+                        }
+                    }
+                    
+                    draw();
+                    
+                    if (!allDone) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        resolve();
+                    }
+                };
+                animate();
+            });
+        }
+        
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        function endGame() {
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('blobMatchHighScore', highScore);
+                document.getElementById('highScore').textContent = highScore;
+            }
+            
+            ctx.fillStyle = 'rgba(0,0,0,0.8)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 32px Comic Sans MS';
+            ctx.textAlign = 'center';
+            ctx.fillText('GAME OVER!', canvas.width/2, canvas.height/2 - 40);
+            
+            ctx.fillStyle = '#ffff00';
+            ctx.font = 'bold 24px Comic Sans MS';
+            ctx.fillText(`Score: ${score}`, canvas.width/2, canvas.height/2 + 10);
+            
+            ctx.fillStyle = '#aaa';
+            ctx.font = '18px Comic Sans MS';
+            ctx.fillText('Tap to play again', canvas.width/2, canvas.height/2 + 60);
+        }
+        
+        // Input handlers
+        let startPos = null;
+        
+        function handleStart(x, y) {
+            if (moves <= 0) {
+                initGrid();
+                score = 0;
+                moves = 30;
+                document.getElementById('score').textContent = score;
+                document.getElementById('moves').textContent = moves;
+                return;
+            }
+            
+            const result = getBlobAtPosition(x, y);
+            if (result && result.blob) {
+                startPos = { row: result.row, col: result.col };
+                selectedBlob = result.blob;
+            }
+        }
+        
+        function handleEnd(x, y) {
+            if (!startPos || isAnimating) {
+                startPos = null;
+                selectedBlob = null;
+                return;
+            }
+            
+            const result = getBlobAtPosition(x, y);
+            if (result && result.blob && areAdjacent(startPos, {row: result.row, col: result.col})) {
+                handleSwap(startPos, {row: result.row, col: result.col});
+            }
+            
+            startPos = null;
+            selectedBlob = null;
+        }
+        
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            handleStart(e.clientX - rect.left, e.clientY - rect.top);
+        });
+        
+        canvas.addEventListener('mouseup', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            handleEnd(e.clientX - rect.left, e.clientY - rect.top);
+        });
+        
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            handleStart(touch.clientX - rect.left, touch.clientY - rect.top);
+        }, { passive: false });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.changedTouches[0];
+            handleEnd(touch.clientX - rect.left, touch.clientY - rect.top);
+        }, { passive: false });
+        
+        // Animation loop
+        function gameLoop() {
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Initialize
+        initGrid();
+        gameLoop();
+    </script>
+</body>
+</html>
