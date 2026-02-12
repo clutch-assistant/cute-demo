@@ -517,11 +517,38 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // Restart handler
+        // Keyboard controls
         document.addEventListener('keydown', (e) => {
-            if ((e.key === ' ' || e.key === 'Enter') && gameOver) {
-                gameStarted = true;
-                resetGame();
+            if (gameOver) {
+                if (e.key === ' ' || e.key === 'Enter') {
+                    gameStarted = true;
+                    resetGame();
+                }
+                return;
+            }
+            
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                keys.left = true;
+            }
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                keys.right = true;
+            }
+            if ((e.key === ' ' || e.key === 'ArrowUp') && player.grounded) {
+                keys.jump = true;
+                player.velocityY = player.jumpPower;
+                player.grounded = false;
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+                keys.left = false;
+            }
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+                keys.right = false;
+            }
+            if (e.key === ' ' || e.key === 'ArrowUp') {
+                keys.jump = false;
             }
         });
 
