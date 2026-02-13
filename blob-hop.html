@@ -55,7 +55,7 @@
     <canvas id="gameCanvas" width="400" height="500"></canvas>
     <div class="info">
         <div class="score">SCORE: <span id="scoreDisplay">0</span> | HIGH: <span id="highScoreDisplay">0</span></div>
-        <div class="controls">← → or A/D to move | SPACE/↑ to jump | Touch left/right sides</div>
+        <div class="controls">← → or A/D to move | SPACE/↑ to jump | Touch: left side→move left, center→jump, right side→move right</div>
     </div>
 
     <script>
@@ -205,24 +205,29 @@
 
         function handleTouch(touches) {
             const rect = canvas.getBoundingClientRect();
-            const midX = rect.width / 2;
+            const thirdWidth = rect.width / 3;
+
+            touchLeft = false;
+            touchRight = false;
+            let jumpStarted = false;
 
             for (let i = 0; i < touches.length; i++) {
                 const touchX = touches[i].clientX - rect.left;
 
-                if (touchX < midX) {
+                if (touchX < thirdWidth) {
+                    // Left zone: move left
                     touchLeft = true;
-                    touchRight = false;
+                } else if (touchX < thirdWidth * 2) {
+                    // Center zone: jump (only if grounded)
+                    if (!jumpStarted && player.grounded) {
+                        jumpStarted = true;
+                        player.velocityY = player.jumpPower;
+                        player.grounded = false;
+                    }
                 } else {
-                    touchLeft = false;
+                    // Right zone: move right
                     touchRight = true;
                 }
-            }
-
-            // Jump on tap when grounded
-            if (player.grounded && touches.length === 1) {
-                player.velocityY = player.jumpPower;
-                player.grounded = false;
             }
         }
 
