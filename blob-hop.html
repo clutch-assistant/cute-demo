@@ -151,36 +151,6 @@
             initStars();
         }
 
-        // Input handlers
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
-                keys.left = true;
-                e.preventDefault();
-            }
-            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
-                keys.right = true;
-                e.preventDefault();
-            }
-            if (e.key === 'ArrowUp' || e.key === ' ' || e.key === 'w' || e.key === 'W') {
-                e.preventDefault();
-                if (player.grounded) {
-                    player.velocityY = player.jumpPower;
-                    player.grounded = false;
-                }
-            }
-        });
-
-        document.addEventListener('keyup', (e) => {
-            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
-                keys.left = false;
-                e.preventDefault();
-            }
-            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
-                keys.right = false;
-                e.preventDefault();
-            }
-        });
-
         // Touch controls
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
